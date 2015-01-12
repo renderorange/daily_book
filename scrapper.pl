@@ -21,8 +21,9 @@ open (my $raw_fh, "<", "pg19445.txt")
 my ($newline, $title, $author);
 foreach (<$raw_fh>) {
 
-    # remove newline
-    #$_ = s/\r\n//;
+    # clean up the text
+    $_ =~ s/^\s+//;   # whitespace at the start
+    $_ =~ s/\s+$//;   # and end of the lines
 
     # extract title and author
     if (/Title/) {
@@ -34,7 +35,8 @@ foreach (<$raw_fh>) {
         $author =~ s/Author: //;
     }
 
-    print $_;
+    print Dumper $_;
+    
 }
 
 # close the book
