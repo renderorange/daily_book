@@ -14,24 +14,28 @@ use Data::Dumper;  # testing
 # get book from project gutenberg
 
 # open it up
-open (my $book_fh, "<", "pg19445.txt")
+open (my $raw_fh, "<", "pg19445.txt")
     or die "cannot open book.txt: $!";
 
-# extract some meta things
-my ($title, $author);
-foreach (<$book_fh>) {
+# extract and format
+my ($newline, $title, $author);
+foreach (<$raw_fh>) {
+
+    # remove newline
+    #$_ = s/\r\n//;
+
+    # extract title and author
     if (/Title/) {
-        chomp($title = $_);
+        $title = $_;
         $title =~ s/Title: //;
-        print "$title\n";
     }
     if (/Author/) {
-        chomp($author = $_);
+        $author = $_;
         $author =~ s/Author: //;
-        print "$author\n";
     }
+
+    print $_;
 }
-print "$title by $author\n";
 
 # close the book
-close ($book_fh);
+close ($raw_fh);
