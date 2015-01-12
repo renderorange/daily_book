@@ -8,18 +8,17 @@ use warnings;
 my $VERSION = '0.0.1';
 
 use Data::Dumper;  # testing
+my $testing = 1;   # testing, 1 for verbose output
 
 
-# get book from project gutenberg
+### open the book and process
+open (my $raw_fh, "<", "pg19445.txt") or die "cannot open book txt: $!";
 
-# open it up
-open (my $raw_fh, "<", "pg19445.txt")
-    or die "cannot open book.txt: $!";
-
-# extract, format, and store
+# read, format, and store
 my ($title, $author);
 my ($_head, $_body, $_footer) = (0, 0, 0);
 my (@header, @body, @footer);
+
 foreach (<$raw_fh>) {
 
     # check location within book
@@ -43,45 +42,54 @@ foreach (<$raw_fh>) {
     $_ =~ s/  / /;    # correct double spacing
     $_ =~ s/\s+$/ /;  # correct spacing at the end of lines
 
-    # process head
+    # store head
     if ($_head == 1) {
-        # grap title and author
-        if (/Title/) {
-            $title = $_;
-            $title =~ s/Title: //;
-        }
-        if (/Author/) {
-            $author = $_;
-            $author =~ s/Author: //;
-        }
-        # store head
         push (@header, $_);
     }
 
-    # process body
+    # store body
     if ($_body == 1) {
-        # store body
         push (@body, $_);
     }
 
-    # process footer
+    # store footer
     if ($_footer == 1) {
-        # store footer
         push (@footer, $_);
     }
 
 }
 
-# [testing]
-print "### header ###\n";
-print Dumper @header;
-print "\n\n";
-print "### body ###\n";
-print Dumper @body;
-print "\n\n";
-print "### footer ###\n";
-print Dumper @footer;
-print "\n\n";
-
 # close the book
 close ($raw_fh);
+
+
+### process head
+foreach (@header) {
+    # grab title and author
+    if (/Title/) {
+        $title = $_;
+        $title =~ s/Title: //;
+    }
+    if (/Author/) {
+        $author = $_;
+        $author =~ s/Author: //;
+    }
+}
+
+
+### [testing]
+if ($testing) {
+    print "###\n" .
+          "# $title\n" .
+          "# by $author\n" .
+          "\n";
+    print "### header ###\n";
+    print Dumper @header;
+    print "\n\n";
+    print "### body ###\n";
+    print Dumper @body;
+    print "\n\n";
+    print "### footer ###\n";
+    print Dumper @footer;
+    print "\n\n";
+}
