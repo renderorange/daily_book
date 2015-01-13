@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# scrapper.pl
+# quote.pl
 
 use strict;
 use warnings;
