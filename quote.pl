@@ -38,8 +38,8 @@ foreach (<$raw_fh>) {
 
     # clean up the text
     $_ =~ s/^\s+//;   # remove whitespace at the start of lines
-    $_ =~ s/\\//;     # remove backslash
-    $_ =~ s/  / /;    # correct double spacing
+    $_ =~ s/\\//g;    # remove backslash
+    $_ =~ s/  / /g;   # correct double spacing
     $_ =~ s/\s+$/ /;  # correct spacing at the end of lines
 
     # store head
