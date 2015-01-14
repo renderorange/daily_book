@@ -15,6 +15,12 @@ my $testing = 0;   # testing, 1 for verbose output
 
 
 ### gather pre-processing information
+# [todo] create log and append
+# [todo] download new catalog everyday
+# check if catalog file exists in dir already
+# check date
+# if date older than a day, redownload
+
 # download and store the book index
 my $rc = getstore('http://www.gutenberg.org/feeds/catalog.rdf.bz2', 'catalog.rdf.bz2');
 if (is_error($rc)) {
@@ -80,7 +86,8 @@ foreach (<$raw_fh>) {
 close ($raw_fh);
 
 
-### process head
+### process the data
+# process head
 foreach (@header) {
     # grab title and author
     if (/Title/) {
@@ -93,8 +100,7 @@ foreach (@header) {
     }
 }
 
-
-### process body
+# process body
 my ($build_variable, @paragraphs);
 foreach (@body) {
     # assemble paragraphs
@@ -106,15 +112,20 @@ foreach (@body) {
     }
 }
 
-
-### print out matching length
+# grab out matching length quote
+my $quote;
 foreach (@paragraphs) {
     if (! defined $_) {  # shouldn't have to do this, change it later
         next;
     } elsif (length $_ == 118) {
-        print "$_\n";
+        $quote = $_;
     }
 }
+
+# build twitter link
+# [todo] 
+# gutenberg.org/ebooks/
+
 
 ### [testing]
 if ($testing) {
@@ -133,5 +144,8 @@ if ($testing) {
     print "\n\n";
     print "### paragraphs ###\n";
     print Dumper @paragraphs;
+    print "\n\n";
+    print "### quote ###";
+    print Dumper $quote;
     print "\n\n";
 }
