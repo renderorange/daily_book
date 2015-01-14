@@ -38,7 +38,6 @@ foreach (<$raw_fh>) {
 
     # clean up the text
     $_ =~ s/^\s+//;   # remove whitespace at the start of lines
-    $_ =~ s/\\//g;    # remove backslash
     $_ =~ s/  / /g;   # correct double spacing
     $_ =~ s/\s+$/ /;  # correct spacing at the end of lines
 
@@ -74,6 +73,11 @@ foreach (@header) {
         $author = $_;
         $author =~ s/Author: //;
     }
+}
+
+
+### process body
+foreach (@body) {
 }
 
 
