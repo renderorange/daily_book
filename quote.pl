@@ -8,10 +8,10 @@ use warnings;
 my $VERSION = '0.0.1';
 
 use Data::Dumper;  # testing
-my $testing = 1;   # testing, 1 for verbose output
+my $testing = 0;   # testing, 1 for verbose output
 
 
-### open the book and process
+### open the book, cleanup, and store
 open (my $raw_fh, "<", "pg19445.txt") or die "cannot open book txt: $!";
 
 # read, format, and store
@@ -77,9 +77,26 @@ foreach (@header) {
 
 
 ### process body
+my ($build_variable, @paragraphs);
 foreach (@body) {
+    # assemble paragraphs
+    if ($_ ne '') {  # blank indicates end of paragraph
+        $build_variable .= $_;
+    } else {
+        push (@paragraphs, $build_variable);
+        $build_variable = ();  # clear out the $build_variable
+    }
 }
 
+
+### print out matching length
+foreach (@paragraphs) {
+    if (! defined $_) {  # shouldn't have to do this, change it later
+        next;
+    } elsif (length $_ == 118) {
+        print "$_\n";
+    }
+}
 
 ### [testing]
 if ($testing) {
@@ -95,5 +112,8 @@ if ($testing) {
     print "\n\n";
     print "### footer ###\n";
     print Dumper @footer;
+    print "\n\n";
+    print "### paragraphs ###\n";
+    print Dumper @paragraphs;
     print "\n\n";
 }
