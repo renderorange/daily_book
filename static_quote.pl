@@ -9,8 +9,8 @@ use Data::Dumper;
 
 
 ### config settings
-my $file = 'pg9985.txt.utf8';
-my $number = '9985';
+my $number = "$ARGV[0]";
+my $file = "pg$number.txt.utf8";
 my $page_link = "gutenberg.org/ebooks/$number";
 my $book_link = "gutenberg.org/cache/epub/$number/$file";
 
@@ -109,6 +109,5 @@ foreach (@paragraphs) {
 print "title: $title\n" .
       "author: $author\n" .
       "\n" .
-      "$page_link\n" .
-      "$quote\n" .
+      "$quote$page_link\n" .
       "\n";
