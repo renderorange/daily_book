@@ -11,7 +11,6 @@ use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 my $VERSION = '0.0.2';
 
 use Data::Dumper;  # testing
-my $testing = 0;   # testing, 1 for verbose output
 
 
 ### gather pre-processing information
@@ -21,18 +20,20 @@ my $testing = 0;   # testing, 1 for verbose output
 # check date
 # if date older than a day, redownload
 
+# [bug] gutenberg.org/ebooks/24857
+
 # download and store the book index
-#my $rc = getstore('http://www.gutenberg.org/feeds/catalog.rdf.bz2', 'catalog.rdf.bz2');
-#if (is_error($rc)) {
-#    die "there was an error downloading the book catalog: $rc";
-#}
+my $rc = getstore('http://www.gutenberg.org/feeds/catalog.rdf.bz2', 'catalog.rdf.bz2');
+if (is_error($rc)) {
+    die "there was an error downloading the book catalog: $rc";
+}
+undef($rc);
 
 # unpack the catalog file
-#bunzip2 'catalog.rdf.bz2' => 'catalog.rdf'
-#    or die "bunzip2 failed: $Bunzip2Error\n";
+bunzip2 'catalog.rdf.bz2' => 'catalog.rdf' or die "bunzip2 failed: $Bunzip2Error\n";
 
 # delete the archived version
-#unlink('catalog.rdf.bz2') or warn "unable to delete catalog archive: $!";
+unlink('catalog.rdf.bz2') or warn "unable to delete catalog archive: $!";
 
 # open the catalog
 open (my $catalog_fh, "<", "catalog.rdf") or die "cannot open catalog: $!";
@@ -56,9 +57,15 @@ $number =~ s/pg//;
 my $page_link = "gutenberg.org/ebooks/$number";
 my $book_link = "gutenberg.org/cache/epub/$number/$file";
 
+# download the ebook
+$rc = getstore("http://$book_link", "$file");
+if (is_error($rc)) {
+    die "there was an error downloading the book: $rc";
+}
+
 
 ### open the book, cleanup, and store
-open (my $raw_fh, "<", "pg19445.txt") or die "cannot open book txt: $!";
+open (my $raw_fh, "<", "$file") or die "cannot open book txt: $!";
 
 # read, format, and store
 my ($title, $author);
@@ -143,25 +150,10 @@ foreach (@paragraphs) {
 }
 
 
-### [testing]
-if ($testing) {
-    print "###\n" .
-          "# $title\n" .
-          "# by $author\n" .
-          "\n";
-    print "### header ###\n";
-    print Dumper @header;
-    print "\n\n";
-    print "### body ###\n";
-    print Dumper @body;
-    print "\n\n";
-    print "### footer ###\n";
-    print Dumper @footer;
-    print "\n\n";
-    print "### paragraphs ###\n";
-    print Dumper @paragraphs;
-    print "\n\n";
-    print "### quote ###";
-    print Dumper $quote;
-    print "\n\n";
-}
+### print out final stuff
+print "title: $title\n" .
+      "author: $author\n" .
+      "\n" .
+      "$page_link\n" .
+      "$quote\n" .
+      "\n";
