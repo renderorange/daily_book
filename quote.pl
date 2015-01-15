@@ -22,17 +22,39 @@ my $testing = 0;   # testing, 1 for verbose output
 # if date older than a day, redownload
 
 # download and store the book index
-my $rc = getstore('http://www.gutenberg.org/feeds/catalog.rdf.bz2', 'catalog.rdf.bz2');
-if (is_error($rc)) {
-    die "there was an error downloading the book catalog: $rc";
-}
+#my $rc = getstore('http://www.gutenberg.org/feeds/catalog.rdf.bz2', 'catalog.rdf.bz2');
+#if (is_error($rc)) {
+#    die "there was an error downloading the book catalog: $rc";
+#}
 
 # unpack the catalog file
-bunzip2 'catalog.rdf.bz2' => 'catalog.rdf'
-    or die "bunzip2 failed: $Bunzip2Error\n";
+#bunzip2 'catalog.rdf.bz2' => 'catalog.rdf'
+#    or die "bunzip2 failed: $Bunzip2Error\n";
 
 # delete the archived version
-unlink('catalog.rdf.bz2') or warn "unable to delete catalog archive: $!";
+#unlink('catalog.rdf.bz2') or warn "unable to delete catalog archive: $!";
+
+# open the catalog
+open (my $catalog_fh, "<", "catalog.rdf") or die "cannot open catalog: $!";
+
+# read and parse for book text links
+my @files;
+foreach (<$catalog_fh>) {
+    if ($_ =~ m/(pg[\d]+\.txt\.utf8)/) {  # match the pg naming convention
+        push (@files, $1);
+    }
+}
+
+# close the catalog
+close ("$catalog_fh");
+
+# grab random book number and build the link
+my $file = @files[rand @files];
+my $number = $file;
+$number =~ s/\.txt\.utf8//;
+$number =~ s/pg//;
+my $page_link = "gutenberg.org/ebooks/$number";
+my $book_link = "gutenberg.org/cache/epub/$number/$file";
 
 
 ### open the book, cleanup, and store
@@ -87,7 +109,6 @@ close ($raw_fh);
 
 
 ### process the data
-# process head
 foreach (@header) {
     # grab title and author
     if (/Title/) {
@@ -100,7 +121,6 @@ foreach (@header) {
     }
 }
 
-# process body
 my ($build_variable, @paragraphs);
 foreach (@body) {
     # assemble paragraphs
@@ -121,10 +141,6 @@ foreach (@paragraphs) {
         $quote = $_;
     }
 }
-
-# build twitter link
-# [todo] 
-# gutenberg.org/ebooks/
 
 
 ### [testing]
