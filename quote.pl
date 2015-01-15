@@ -180,6 +180,9 @@ foreach (@paragraphs) {
         $quote = $_;
     }
 }
+if (! $quote) {
+    die "no quote matching the length was found\n";
+}
 
 
 ### print out final stuff

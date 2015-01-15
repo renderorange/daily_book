@@ -13,6 +13,7 @@ my $number = '12345';
 my $file = "pg$number.txt.utf8";
 my $page_link = "gutenberg.org/ebooks/$number";
 my $book_link = "gutenberg.org/cache/epub/$number/$file";
+my $testing = 1;
 
 
 ### open the book, cleanup, and store
@@ -103,7 +104,9 @@ foreach (@paragraphs) {
         $quote = $_;
     }
 }
-
+if (! $quote) {
+    die "no quote matching the length was found\n";
+}
 
 ### print out final stuff
 print "title: $title\n" .
@@ -111,3 +114,13 @@ print "title: $title\n" .
       "\n" .
       "$quote$page_link\n" .
       "\n";
+
+if ($testing) {
+    print "### header ###\n";
+    print Dumper @header;
+    print "\n";
+    print Dumper @body;
+    print "\n";
+    print Dumper @footer;
+    print "\n";
+}
