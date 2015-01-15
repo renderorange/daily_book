@@ -181,6 +181,5 @@ if (! $quote) {
 print "title: $title\n" .
       "author: $author\n" .
       "\n" .
-      "$page_link\n" .
-      "$quote\n" .
+      "$quote$page_link\n" .
       "\n";
