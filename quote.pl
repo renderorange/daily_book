@@ -10,33 +10,62 @@ use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 
 my $VERSION = '0.0.2';
 
-use Data::Dumper;  # testing
+use Data::Dumper;
+
+
+### [todo]
+# streamline time check and download code
+# create log and append
+# [bug] gutenberg.org/ebooks/24857 - reader
+# clean up formatting on file
+# run against perl critic
+# add check for 'The New McGuffey', exit, later adding ability to read those
+# [bug]
+# ~/dev/projects/gutenberg_quote $ perl quote.pl 
+# Use of uninitialized value $quote in concatenation (.) or string at quote.pl line 180.
+# title: Pocahontas 
+# author: Virginia Carter Castleman 
+
+# gutenberg.org/ebooks/9985
 
 
 ### gather pre-processing information
-# [todo] create log and append
-# [todo] download new catalog everyday
-# check if catalog file exists in dir already
-# check date
-# if date older than a day, redownload
-
-# [bug] gutenberg.org/ebooks/24857
-
-# download and store the book index
-my $rc = getstore('http://www.gutenberg.org/feeds/catalog.rdf.bz2', 'catalog.rdf.bz2');
-if (is_error($rc)) {
-    die "there was an error downloading the book catalog: $rc";
+# check if catalog exists
+my $catalog = 'catalog.rdf';
+if (-e "$catalog") {
+    # check date
+    my $mtime = (stat $catalog)[9];
+    my $current_time = time;
+    my $diff = $current_time - $mtime;
+    # if older than one day
+    if ($diff > 86400) {
+        # delete the old catalog
+        unlink('catalog.rdf') or warn "unable to delete old catalog: $!";
+        # download and store the new catalog archive
+        my $rc = getstore('http://www.gutenberg.org/feeds/catalog.rdf.bz2', 'catalog.rdf.bz2');
+        if (is_error($rc)) {
+            die "there was an error downloading the book catalog: $rc";
+        }
+        undef($rc);
+        # unpack the catalog file
+        bunzip2 'catalog.rdf.bz2' => "$catalog" or die "bunzip2 failed: $Bunzip2Error\n";
+        # delete the archived version
+        unlink('catalog.rdf.bz2') or warn "unable to delete catalog archive: $!";
+    }
+} else {
+    my $rc = getstore('http://www.gutenberg.org/feeds/catalog.rdf.bz2', 'catalog.rdf.bz2');
+    if (is_error($rc)) {
+        die "there was an error downloading the book catalog: $rc";
+    }
+    undef($rc);
+    # unpack the catalog file
+    bunzip2 'catalog.rdf.bz2' => "$catalog" or die "bunzip2 failed: $Bunzip2Error\n";
+    # delete the archived version
+    unlink('catalog.rdf.bz2') or warn "unable to delete catalog archive: $!";
 }
-undef($rc);
-
-# unpack the catalog file
-bunzip2 'catalog.rdf.bz2' => 'catalog.rdf' or die "bunzip2 failed: $Bunzip2Error\n";
-
-# delete the archived version
-unlink('catalog.rdf.bz2') or warn "unable to delete catalog archive: $!";
 
 # open the catalog
-open (my $catalog_fh, "<", "catalog.rdf") or die "cannot open catalog: $!";
+open (my $catalog_fh, "<", "$catalog") or die "cannot open catalog: $!";
 
 # read and parse for book text links
 my @files;
@@ -58,11 +87,10 @@ my $page_link = "gutenberg.org/ebooks/$number";
 my $book_link = "gutenberg.org/cache/epub/$number/$file";
 
 # download the ebook
-$rc = getstore("http://$book_link", "$file");
+my $rc = getstore("http://$book_link", "$file");
 if (is_error($rc)) {
     die "there was an error downloading the book: $rc";
 }
-
 
 ### open the book, cleanup, and store
 open (my $raw_fh, "<", "$file") or die "cannot open book txt: $!";
@@ -77,6 +105,10 @@ foreach (<$raw_fh>) {
     # check location within book
     if ($_body != 1 && $_footer != 1) {
         $_head = 1;
+    }
+    # check for 'The New McGuffey'
+    if (/The New McGuffey/) {
+        die "The New McGuffey Reader found; I don't know how to read those yet\n";
     }
     if (/\*\*\* START OF THIS PROJECT/) {
         $_head = 0;
@@ -118,11 +150,11 @@ close ($raw_fh);
 ### process the data
 foreach (@header) {
     # grab title and author
-    if (/Title/) {
+    if (/Title:/) {
         $title = $_;
         $title =~ s/Title: //;
     }
-    if (/Author/) {
+    if (/Author:/) {
         $author = $_;
         $author =~ s/Author: //;
     }
