@@ -16,17 +16,9 @@ use Data::Dumper;
 ### [todo]
 # streamline time check and download code
 # create log and append
-# [bug] gutenberg.org/ebooks/24857 - reader
 # clean up formatting on file
 # run against perl critic
 # add check for 'The New McGuffey', exit, later adding ability to read those
-# [bug]
-# ~/dev/projects/gutenberg_quote $ perl quote.pl 
-# Use of uninitialized value $quote in concatenation (.) or string at quote.pl line 180.
-# title: Pocahontas 
-# author: Virginia Carter Castleman 
-
-# gutenberg.org/ebooks/9985
 
 
 ### gather pre-processing information
