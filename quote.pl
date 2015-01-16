@@ -164,15 +164,19 @@ foreach (@body) {
     }
 }
 
-# grab out matching length quote
+# check for undesirables, grab out matching length quote
 my $quote;
 foreach (@paragraphs) {
     if (! defined $_) {  # shouldn't have to do this, change it later
+        next;
+    } elsif ($_ =~ /[:\;] $/) {  # paragraph ends with semicolon (due to formatting issue from earlier in the script)
         next;
     } elsif (length $_ == 118) {
         $quote = $_;
     }
 }
+
+# verify a quote was found
 if (! $quote) {
     die "no quote matching the length was found\n";
 }
