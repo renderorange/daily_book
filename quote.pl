@@ -33,28 +33,10 @@ if (-e "$catalog") {
     if ($diff > 86400) {
         # delete the old catalog
         unlink('catalog.rdf') or warn "unable to delete old catalog: $!";
-        # download and store the new catalog archive
-        my $rc = getstore('http://www.gutenberg.org/feeds/catalog.rdf.bz2', 'catalog.rdf.bz2');
-        if (is_error($rc)) {
-            die "there was an error downloading the book catalog: $rc";
-        }
-        undef($rc);
-        # unpack the catalog file
-        bunzip2 'catalog.rdf.bz2' => "$catalog" or die "bunzip2 failed: $Bunzip2Error\n";
-        # delete the archived version
-        unlink('catalog.rdf.bz2') or warn "unable to delete catalog archive: $!";
+        get_catalog();
     }
 } else {
-    my $rc = getstore('http://www.gutenberg.org/feeds/catalog.rdf.bz2', 'catalog.rdf.bz2');
-    if (is_error($rc)) {
-        die "there was an error downloading the book catalog: $rc";
-    }
-    undef($rc);
-    # unpack the catalog file
-    bunzip2 'catalog.rdf.bz2' => "$catalog" or die "bunzip2 failed: $Bunzip2Error\n";
-    # delete the archived version
-    unlink('catalog.rdf.bz2') or warn "unable to delete catalog archive: $!";
-
+    get_catalog();
 }
 
 # open the catalog
@@ -182,3 +164,18 @@ print "title: $title\n" .
       "\n" .
       "$quote$page_link\n" .
       "\n";
+
+
+### subs
+sub get_catalog {
+    # download and store the new catalog archive
+    my $rc = getstore('http://www.gutenberg.org/feeds/catalog.rdf.bz2', 'catalog.rdf.bz2');
+    if (is_error($rc)) {
+        die "there was an error downloading the book catalog: $rc";
+    }
+    undef($rc);
+    # unpack the catalog file
+    bunzip2 'catalog.rdf.bz2' => "$catalog" or die "bunzip2 failed: $Bunzip2Error\n";
+    # delete the archived version
+    unlink('catalog.rdf.bz2') or warn "unable to delete catalog archive: $!";
+}
