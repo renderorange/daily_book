@@ -19,6 +19,7 @@ use Data::Dumper;
 # clean up formatting on file
 # run against perl critic
 # add check for 'The New McGuffey', exit, later adding ability to read those
+# add renaming file to allow for irregularities in download link
 
 
 ### gather pre-processing information
