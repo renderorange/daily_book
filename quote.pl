@@ -8,7 +8,7 @@ use warnings;
 use LWP::Simple;
 use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 
-my $VERSION = '0.0.2';
+my $VERSION = '0.0.3';
 
 use Data::Dumper;
 
@@ -18,7 +18,6 @@ use Data::Dumper;
 # create log and append
 # clean up formatting on file
 # run against perl critic
-# add check for 'The New McGuffey', exit, later adding ability to read those
 # add renaming file to allow for irregularities in download link
 
 
@@ -55,6 +54,7 @@ if (-e "$catalog") {
     bunzip2 'catalog.rdf.bz2' => "$catalog" or die "bunzip2 failed: $Bunzip2Error\n";
     # delete the archived version
     unlink('catalog.rdf.bz2') or warn "unable to delete catalog archive: $!";
+
 }
 
 # open the catalog
@@ -94,7 +94,6 @@ my ($_head, $_body, $_footer) = (0, 0, 0);
 my (@header, @body, @footer);
 
 foreach (<$raw_fh>) {
-
     # check location within book
     if ($_body != 1 && $_footer != 1) {
         $_head = 1;
@@ -113,27 +112,22 @@ foreach (<$raw_fh>) {
         $_footer = 1;
         next;  # we don't want to store this line either
     }
-
     # clean up the text
     $_ =~ s/^\s+//;   # remove whitespace at the start of lines
     $_ =~ s/  / /g;   # correct double spacing
     $_ =~ s/\s+$/ /;  # correct spacing at the end of lines
-
     # store head
     if ($_head == 1) {
         push (@header, $_);
     }
-
     # store body
     if ($_body == 1) {
         push (@body, $_);
     }
-
     # store footer
     if ($_footer == 1) {
         push (@footer, $_);
     }
-
 }
 
 # close the book
