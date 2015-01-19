@@ -44,7 +44,7 @@ open (my $catalog_fh, "<", "$catalog") or die "cannot open catalog: $!";
 
 # read and parse for book text links
 my @files;
-foreach (<$catalog_fh>) {
+while (<$catalog_fh>) {
     if ($_ =~ m/(pg[\d]+\.txt\.utf8)/) {  # match the pg naming convention
         push (@files, $1);
     }
@@ -75,7 +75,7 @@ my ($title, $author);
 my ($_head, $_body, $_footer) = (0, 0, 0);
 my (@header, @body, @footer);
 
-foreach (<$raw_fh>) {
+while (<$raw_fh>) {
     # check location within book
     if ($_body != 1 && $_footer != 1) {
         $_head = 1;
@@ -140,7 +140,7 @@ foreach (@body) {
     }
 }
 
-# check for undesirables, grab out matching length quote
+# grab out matching length quote
 my $quote;
 foreach (@paragraphs) {
     if (! defined $_) {  # shouldn't have to do this, change it later

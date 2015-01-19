@@ -9,7 +9,7 @@ use Data::Dumper;
 
 
 ### config settings
-my $number = '25643';
+my $number = '24857';
 my $file = "pg$number.txt.utf8";
 my $page_link = "gutenberg.org/ebooks/$number";
 my $book_link = "gutenberg.org/cache/epub/$number/$file";
