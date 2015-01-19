@@ -8,7 +8,7 @@ use warnings;
 use LWP::Simple;
 use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 
-my $VERSION = '0.0.3';
+my $VERSION = '0.0.4';
 
 use Data::Dumper;
 
@@ -145,9 +145,11 @@ my $quote;
 foreach (@paragraphs) {
     if (! defined $_) {  # shouldn't have to do this, change it later
         next;
+    } elsif ($_ =~ /End of the Project Gutenberg EBook/) {
+        next;
     } elsif ($_ =~ /[:\;] $/) {  # paragraph ends with semicolon (due to formatting issue from earlier in the script)
         next;
-    } elsif (length $_ == 118) {
+    } elsif (length $_ > 100 && length $_ < 119) {
         $quote = $_;
     }
 }

@@ -9,7 +9,7 @@ use Data::Dumper;
 
 
 ### config settings
-my $number = '24857';
+my $number = '18264';
 my $file = "pg$number.txt.utf8";
 my $page_link = "gutenberg.org/ebooks/$number";
 my $book_link = "gutenberg.org/cache/epub/$number/$file";
@@ -100,9 +100,11 @@ my $quote;
 foreach (@paragraphs) {
     if (! defined $_) {  # shouldn't have to do this, change it later
         next;
+    } elsif ($_ =~ /End of the Project Gutenberg EBook/) {
+        next;
     } elsif ($_ =~ /[:\;] $/) {  # paragraph ends with semicolon (due to formatting issue from earlier in the script)
         next;
-    } elsif (length $_ == 118) {
+    } elsif (length $_ > 100 && length $_ < 119) {
         $quote = $_;
     }
 }
