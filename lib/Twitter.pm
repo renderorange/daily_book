@@ -6,6 +6,8 @@ use warnings;
 use Exporter qw(import);
 our @EXPORT = qw(post);
 
+# requires Net::OAuth
+
 # settings
 use Net::Twitter::Lite::WithAPIv1_1;
 my $twitter = Net::Twitter::Lite::WithAPIv1_1->new(

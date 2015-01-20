@@ -10,6 +10,7 @@ use LWP::Simple;
 use File::Basename qw{dirname};
 use Cwd qw{abs_path};
 use lib abs_path( dirname(__FILE__) . '/lib' );
+
 use Vars;
 use Twitter;
 use Catalog;
