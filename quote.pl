@@ -6,18 +6,20 @@ use strict;
 use warnings;
 
 use LWP::Simple;
-
-use File::Basename qw{dirname};
-use Cwd qw{abs_path};
-use lib abs_path( dirname(__FILE__) . '/lib' );
-
-use Vars;
-use Twitter;
-use Catalog;
+use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
+use Net::Twitter::Lite::WithAPIv1_1;
 
 my $VERSION = '0.0.5';
 
-use Data::Dumper;
+
+### variables and settings
+my $catalog = 'catalog.rdf';
+
+# twitter oauth
+my $consumer_key = '***REMOVED***';
+my $consumer_secret = '***REMOVED***';
+my $access_token = '***REMOVED***';
+my $access_token_secret = '***REMOVED***';
 
 
 ### gather pre-processing information
@@ -31,10 +33,10 @@ if (-e "$catalog") {
     if ($diff > 86400) {
         # delete the old catalog
         unlink("$catalog") or warn "unable to delete old catalog: $!";
-        Catalog::get_catalog();
+        get_catalog();
     }
 } else {
-    Catalog::get_catalog();
+    get_catalog();
 }
 
 # open the catalog
@@ -67,7 +69,7 @@ if (is_error($rc)) {
 
 
 ### open the book, cleanup, and store
-open (my $raw_fh, "<", "$file") or die "cannot open book txt: $!";
+open (my $raw_fh, "<", "$file") or die "unable to open book txt: $!";
 
 # read, format, and store
 my ($title, $author);
@@ -79,10 +81,8 @@ while (<$raw_fh>) {
     if ($_body != 1 && $_footer != 1) {
         $_head = 1;
     }
-    if (/Title\: U\.S\. Copyright Renewals/) {
-    }
     if (/The New McGuffey/) {
-        die "The New McGuffey Reader found; I don't know how to read those yet\n";
+        die "ebook is The New McGuffey Reader\n";
     }
     if (/Language: /) {
         if ($_ !~ /English/) {
@@ -117,8 +117,9 @@ while (<$raw_fh>) {
     }
 }
 
-# close the book
+# close the book and delete it
 close ($raw_fh);
+unlink("$file") or warn "unable to delete book txt: $!";
 
 
 ### process the data
@@ -150,13 +151,15 @@ my $quote;
 foreach (@paragraphs) {
     if (! defined $_) {  # shouldn't have to do this, change it later
         next;
-    } elsif (/\[ILLUSTRATION\:/) {
-        next;
-    } elsif ($_ =~ /End of the Project Gutenberg EBook/) {
-        next;
+#    } elsif (/\[ILLUSTRATION\:/) {
+#        next;
+#    } elsif ($_ =~ /End of the Project Gutenberg EBook/) {
+#        next;
     } elsif ($_ =~ /[:\;] $/) {  # paragraph ends with semicolon (due to formatting issue from earlier in the script)
         next;
-    } elsif (length $_ > 105 && length $_ < 119) {
+    } elsif ($_ !~ /^["]/) {  # only take lines that start with a quote (this has yielded the best results against false positive)
+        next;
+    } elsif (length $_ > 90 && length $_ < 119) {
         $quote = $_;
     }
 }
@@ -174,7 +177,34 @@ print "title: $title\n" .
       "$quote$page_link\n" .
       "\n";
 
-# post to twitter
+
+### twitter
+# instantiate object
+my $twitter = Net::Twitter::Lite::WithAPIv1_1->new(
+    consumer_key        => "$consumer_key",
+    consumer_secret     => "$consumer_secret",
+    access_token        => "$access_token",
+    access_token_secret => "$access_token_secret",
+    ssl                 => 1,
+);
+
+# post
 print "posting to Twitter\n";
-Twitter::post("$quote$page_link");
+my $result = $twitter->update("$quote$page_link");
 print "\n";
+
+
+### subs
+sub get_catalog {
+    # download and store the new catalog archive
+    my $rc = getstore('http://www.gutenberg.org/feeds/catalog.rdf.bz2', 'catalog.rdf.bz2');
+    if (is_error($rc)) {
+        die "there was an error downloading the book catalog: $rc";
+    }
+    undef($rc);
+    # unpack the catalog file
+    bunzip2 'catalog.rdf.bz2' => "$catalog" or die "bunzip2 failed: $Bunzip2Error\n";
+    # delete the archived version
+    unlink('catalog.rdf.bz2') or warn "unable to delete catalog archive: $!";
+}
+
