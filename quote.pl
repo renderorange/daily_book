@@ -10,6 +10,7 @@ use LWP::Simple;
 use File::Basename qw{dirname};
 use Cwd qw{abs_path};
 use lib abs_path( dirname(__FILE__) . '/lib' );
+use Vars;
 use Twitter;
 use Catalog;
 
@@ -20,7 +21,6 @@ use Data::Dumper;
 
 ### gather pre-processing information
 # check if catalog exists
-my $catalog = 'catalog.rdf';  # clean this up by adding in a Vars.pm to hold variables in
 if (-e "$catalog") {
     # check date
     my $mtime = (stat $catalog)[9];
@@ -29,7 +29,7 @@ if (-e "$catalog") {
     # if older than one day
     if ($diff > 86400) {
         # delete the old catalog
-        unlink('catalog.rdf') or warn "unable to delete old catalog: $!";
+        unlink("$catalog") or warn "unable to delete old catalog: $!";
         Catalog::get_catalog();
     }
 } else {
