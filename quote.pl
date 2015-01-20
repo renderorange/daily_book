@@ -151,14 +151,16 @@ my $quote;
 foreach (@paragraphs) {
     if (! defined $_) {  # shouldn't have to do this, change it later
         next;
-#    } elsif (/\[ILLUSTRATION\:/) {
-#        next;
-#    } elsif ($_ =~ /End of the Project Gutenberg EBook/) {
-#        next;
+    } elsif ($_ =~ /©/) {
+        next; 
+    } elsif (/\[ILLUSTRATION\:/) {
+        next;
+    } elsif ($_ =~ /End of the Project Gutenberg EBook/) {
+        next;
     } elsif ($_ =~ /[:\;] $/) {  # paragraph ends with semicolon (due to formatting issue from earlier in the script)
         next;
-    } elsif ($_ !~ /^["]/) {  # only take lines that start with a quote (this has yielded the best results against false positive)
-        next;
+#    } elsif ($_ !~ /^["]/) {  # only take lines that start with a quote (this has yielded the best results against false positive)
+#        next;
     } elsif (length $_ > 90 && length $_ < 119) {
         $quote = $_;
     }
