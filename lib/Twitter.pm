@@ -1,4 +1,5 @@
 package Twitter;
+
 use strict;
 use warnings;
 
@@ -15,8 +16,10 @@ my $twitter = Net::Twitter::Lite::WithAPIv1_1->new(
     ssl                 => 1,
 );
 
+# subs
 sub post {
-    my $result = $twitter->update('Hello one last time!');
+    my $text = shift;
+    my $result = $twitter->update("$text");
     return $result;
 }
 
