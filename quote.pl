@@ -53,6 +53,10 @@ while (<$catalog_fh>) {
 # close the catalog
 close ("$catalog_fh");
 
+
+### begin processing
+# loop here, since a book isn't guaranteed to find a quote each time
+while (1) {  # main while loop 
 # grab random book number and build the link
 my $file = @files[rand @files];
 my $number = $file;
@@ -64,7 +68,8 @@ my $book_link = "gutenberg.org/cache/epub/$number/$file";
 # download the ebook
 my $rc = getstore("http://$book_link", "$file");
 if (is_error($rc)) {
-    die "there was an error downloading the book: $rc";
+    warn "there was an error downloading the book: $rc";
+    next;
 }
 
 
@@ -82,11 +87,13 @@ while (<$raw_fh>) {
         $_head = 1;
     }
     if (/The New McGuffey/) {
-        die "ebook is The New McGuffey Reader\n";
+        warn "ebook is The New McGuffey Reader\n";
+        last;
     }
     if (/Language: /) {
         if ($_ !~ /English/) {
-            die "ebook isn't in English\n";
+            warn "ebook isn't in English\n";
+            last;
         }
     }
     if (/\*\*\* START OF THIS PROJECT/) {
@@ -151,6 +158,8 @@ my $quote;
 foreach (@paragraphs) {
     if (! defined $_) {  # shouldn't have to do this, change it later
         next;
+    } elsif ($_ =~ /Page [\d]/) {
+        next;
     } elsif ($_ =~ /©/) {
         next; 
     } elsif (/\[ILLUSTRATION\:/) {
@@ -170,7 +179,8 @@ foreach (@paragraphs) {
 
 # verify a quote was found
 if (! $quote) {
-    die "no quote matching the length was found\n";
+    warn "no quote matching the length was found\n";
+    next;
 }
 
 
@@ -196,6 +206,8 @@ my $twitter = Net::Twitter::Lite::WithAPIv1_1->new(
 print "posting to Twitter\n";
 my $result = $twitter->update("$quote$page_link");
 print "\n";
+last;
+}  # main while loop 
 
 
 ### subs
