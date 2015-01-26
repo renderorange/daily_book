@@ -5,21 +5,30 @@
 use strict;
 use warnings;
 
+use Getopt::Long;
 use LWP::Simple;
 use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 use Net::Twitter::Lite::WithAPIv1_1;
 
-my $VERSION = '0.0.5';
+my $VERSION = '0.0.6';
 
 
 ### variables and settings
 my $catalog = 'catalog.rdf';
+my ($number, $twitter);
 
 # twitter oauth
 my $consumer_key = '***REMOVED***';
 my $consumer_secret = '***REMOVED***';
 my $access_token = '***REMOVED***';
 my $access_token_secret = '***REMOVED***';
+
+
+### get commandline options
+GetOptions ("manual=i" => \$number,
+            "twitter"  => \$twitter,
+            "verbose"  => \$verbose)
+    or die print_help();
 
 
 ### gather pre-processing information
@@ -59,7 +68,7 @@ close ("$catalog_fh");
 while (1) {  # main while loop 
 # grab random book number and build the link
 my $file = @files[rand @files];
-my $number = $file;
+$number = $file;
 $number =~ s/\.txt\.utf8//;
 $number =~ s/pg//;
 my $page_link = "gutenberg.org/ebooks/$number";
@@ -211,6 +220,13 @@ last;
 
 
 ### subs
+sub print_help {
+    print "usage: ./quote.pl\n" .
+          "-m|--manual 1234\t downloads and searches book with specified book number\n"
+          "-t|--twitter\t post to twitter\n" .
+          "-v|--verbose\t display verbose output\n";
+}
+
 sub get_catalog {
     # download and store the new catalog archive
     my $rc = getstore('http://www.gutenberg.org/feeds/catalog.rdf.bz2', 'catalog.rdf.bz2');
