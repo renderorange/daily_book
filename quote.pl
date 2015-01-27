@@ -15,7 +15,8 @@ my $VERSION = '0.0.6';
 
 ### variables and settings
 # twitter oauth
-my $consumer_key = '***REMOVED***';
+#my $consumer_key = '***REMOVED***';
+my $consumer_key = '';
 my $consumer_secret = '***REMOVED***';
 my $access_token = '***REMOVED***';
 my $access_token_secret = '***REMOVED***';
@@ -24,10 +25,10 @@ my $access_token_secret = '***REMOVED***';
 ### pre-processing
 # get commandline options
 my ($twitter, $verbose);
-GetOptions ("twitter"  => \$twitter,
-            "verbose"  => \$verbose)
+GetOptions ("twitter"  => sub { $twitter = 1 },
+            "verbose"  => sub { $verbose = 1 })
     or print_help() and exit;
-if ($twitter || $verbose || ($verbose and ! $twitter)) {
+if ($twitter || $verbose) {
     ;
 } else {
     print_help() and exit;
@@ -190,43 +191,49 @@ foreach (@paragraphs) {
 
 # verify a quote was found
 if (! $quote) {
-    warn "no quote matching the length was found\n";
+    warn "no quote matching the length was found, sleeping 1 minute\n";
+    sleep 60;
     next;
 }
 
 
-### print out final stuff
-print "title: $title\n" .
-      "author: $author\n" .
-      "\n" .
-      "$quote$page_link\n" .
-      "\n";
+### print out verbose output
+if ($verbose == 1) {
+    print "title: $title\n" .
+          "author: $author\n" .
+          "\n" .
+          "$quote$page_link\n" .
+          "\n";
+}
 
 
 ### twitter
-# instantiate object
-my $twitter = Net::Twitter::Lite::WithAPIv1_1->new(
-    consumer_key        => "$consumer_key",
-    consumer_secret     => "$consumer_secret",
-    access_token        => "$access_token",
-    access_token_secret => "$access_token_secret",
-    ssl                 => 1,
-);
-
-# post
 if ($twitter == 1) {
+    # check for twitter settings
+    if ($consumer_key eq '' || $consumer_secret eq '' || $access_token eq '' || $access_token_secret eq '') {
+        die "twitter oauth credentials are not complete\n";
+    }
+    # instantiate object
+    my $twitter = Net::Twitter::Lite::WithAPIv1_1->new(
+        consumer_key        => "$consumer_key",
+        consumer_secret     => "$consumer_secret",
+        access_token        => "$access_token",
+        access_token_secret => "$access_token_secret",
+        ssl                 => 1,
+    );
     print "posting to Twitter\n";
     my $result = $twitter->update("$quote$page_link");
     print "\n";
     last;
 } else {
     last;
+}
 }  # main while loop 
+
 
 ### subs
 sub print_help {
     print "usage: ./quote.pl\n" .
-          "-m|--manual 1234\t downloads and searches book with specified book number\n" .
           "-t|--twitter\t\t post to twitter\n" .
           "-v|--verbose\t\t display verbose output\n" .
           "\n";
