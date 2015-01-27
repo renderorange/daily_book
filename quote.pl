@@ -14,9 +14,6 @@ my $VERSION = '0.0.6';
 
 
 ### variables and settings
-my $catalog = 'catalog.rdf';
-my ($number, $twitter);
-
 # twitter oauth
 my $consumer_key = '***REMOVED***';
 my $consumer_secret = '***REMOVED***';
@@ -24,15 +21,16 @@ my $access_token = '***REMOVED***';
 my $access_token_secret = '***REMOVED***';
 
 
-### get commandline options
-GetOptions ("manual=i" => \$number,
+### pre-processing
+# get commandline options
+my ($number, $twitter, $verbose);
+GetOptions ("manual=i" => \$number,  # set further down
             "twitter"  => \$twitter,
             "verbose"  => \$verbose)
-    or die print_help();
+    or print_help() and exit;
 
-
-### gather pre-processing information
 # check if catalog exists
+my $catalog = 'catalog.rdf';
 if (-e "$catalog") {
     # check date
     my $mtime = (stat $catalog)[9];
@@ -222,9 +220,9 @@ last;
 ### subs
 sub print_help {
     print "usage: ./quote.pl\n" .
-          "-m|--manual 1234\t downloads and searches book with specified book number\n"
-          "-t|--twitter\t post to twitter\n" .
-          "-v|--verbose\t display verbose output\n";
+          "-m|--manual 1234\t downloads and searches book with specified book number\n" .
+          "-t|--twitter\t\t post to twitter\n" .
+          "-v|--verbose\t\t display verbose output\n";
 }
 
 sub get_catalog {
