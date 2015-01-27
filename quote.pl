@@ -23,11 +23,15 @@ my $access_token_secret = '***REMOVED***';
 
 ### pre-processing
 # get commandline options
-my ($number, $twitter, $verbose);
-GetOptions ("manual=i" => \$number,  # set further down
-            "twitter"  => \$twitter,
+my ($twitter, $verbose);
+GetOptions ("twitter"  => \$twitter,
             "verbose"  => \$verbose)
     or print_help() and exit;
+if ($twitter || $verbose || ($verbose and ! $twitter)) {
+    ;
+} else {
+    print_help() and exit;
+}
 
 # check if catalog exists
 my $catalog = 'catalog.rdf';
@@ -66,7 +70,7 @@ close ("$catalog_fh");
 while (1) {  # main while loop 
 # grab random book number and build the link
 my $file = @files[rand @files];
-$number = $file;
+my $number = $file;
 $number =~ s/\.txt\.utf8//;
 $number =~ s/pg//;
 my $page_link = "gutenberg.org/ebooks/$number";
@@ -177,8 +181,8 @@ foreach (@paragraphs) {
         next;
     } elsif ($_ =~ /[:\;] $/) {  # paragraph ends with semicolon (due to formatting issue from earlier in the script)
         next;
-#    } elsif ($_ !~ /^["]/) {  # only take lines that start with a quote (this has yielded the best results against false positive)
-#        next;
+    } elsif ($_ !~ /^["]/) {  # only take lines that start with a quote (this has yielded the best results against false positive)
+        next;
     } elsif (length $_ > 90 && length $_ < 119) {
         $quote = $_;
     }
@@ -210,19 +214,22 @@ my $twitter = Net::Twitter::Lite::WithAPIv1_1->new(
 );
 
 # post
-print "posting to Twitter\n";
-my $result = $twitter->update("$quote$page_link");
-print "\n";
-last;
+if ($twitter == 1) {
+    print "posting to Twitter\n";
+    my $result = $twitter->update("$quote$page_link");
+    print "\n";
+    last;
+} else {
+    last;
 }  # main while loop 
-
 
 ### subs
 sub print_help {
     print "usage: ./quote.pl\n" .
           "-m|--manual 1234\t downloads and searches book with specified book number\n" .
           "-t|--twitter\t\t post to twitter\n" .
-          "-v|--verbose\t\t display verbose output\n";
+          "-v|--verbose\t\t display verbose output\n" .
+          "\n";
 }
 
 sub get_catalog {
