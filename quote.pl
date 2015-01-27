@@ -14,9 +14,13 @@ my $VERSION = '0.0.6';
 
 
 ### variables and settings
+my $sleep = 61;  # this is to get around their ratelimiter
+# something else to try is randomizing the wait time, to ensure they aren't blocking based on recurring times
+# minimum, 61 seconds, randomized up to 2 minutes
+# also, if ratelimited flag is set, wait 15 minutes, try once, wait 15 minutes
+
 # twitter oauth
-#my $consumer_key = '***REMOVED***';
-my $consumer_key = '';
+my $consumer_key = '***REMOVED***';
 my $consumer_secret = '***REMOVED***';
 my $access_token = '***REMOVED***';
 my $access_token_secret = '***REMOVED***';
@@ -80,8 +84,7 @@ my $book_link = "gutenberg.org/cache/epub/$number/$file";
 # download the ebook
 my $rc = getstore("http://$book_link", "$file");
 if (is_error($rc)) {
-    warn "there was an error downloading the book: $rc";
-    next;
+    die "there was an error downloading the book: $rc";
 }
 
 
@@ -98,13 +101,21 @@ while (<$raw_fh>) {
     if ($_body != 1 && $_footer != 1) {
         $_head = 1;
     }
+    # check for ratelimiting
+    if (/You have used Project Gutenberg quite a lot today or clicked through it really fast/) {
+        warn "blast, we've been ratelimited; still working out this method\n";
+        sleep 900;  # sleep 15 minutes
+        last;
+    }
     if (/The New McGuffey/) {
         warn "ebook is The New McGuffey Reader\n";
+        sleep $sleep;
         last;
     }
     if (/Language: /) {
         if ($_ !~ /English/) {
             warn "ebook isn't in English\n";
+            sleep $sleep;
             last;
         }
     }
@@ -170,16 +181,16 @@ my $quote;
 foreach (@paragraphs) {
     if (! defined $_) {  # shouldn't have to do this, change it later
         next;
-    } elsif ($_ =~ /Page [\d]/) {
-        next;
-    } elsif ($_ =~ /©/) {
-        next; 
-    } elsif (/\[ILLUSTRATION\:/) {
-        next;
-    } elsif ($_ =~ /End of the Project Gutenberg EBook/) {
-        next;
-    } elsif ($_ =~ /^[\[]/) {  # paragraph starts with [, example being 6388
-        next;
+#    } elsif ($_ =~ /Page [\d]/) {
+#        next;
+#    } elsif ($_ =~ /©/) {
+#        next; 
+#    } elsif (/\[ILLUSTRATION\:/) {
+#        next;
+#    } elsif ($_ =~ /End of the Project Gutenberg EBook/) {
+#        next;
+#    } elsif ($_ =~ /^[\[]/) {  # paragraph starts with [, example being 6388
+#        next;
     } elsif ($_ =~ /[:\;] $/) {  # paragraph ends with semicolon (due to formatting issue from earlier in the script)
         next;
     } elsif ($_ !~ /^["]/) {  # only take lines that start with a quote (this has yielded the best results against false positive)
@@ -191,14 +202,14 @@ foreach (@paragraphs) {
 
 # verify a quote was found
 if (! $quote) {
-    warn "no quote matching the length was found, sleeping 1 minute\n";
-    sleep 60;
+    warn "no quote found\n";
+    sleep $sleep;
     next;
 }
 
 
 ### print out verbose output
-if ($verbose == 1) {
+if ($verbose) {
     print "title: $title\n" .
           "author: $author\n" .
           "\n" .
@@ -208,7 +219,7 @@ if ($verbose == 1) {
 
 
 ### twitter
-if ($twitter == 1) {
+if ($twitter) {
     # check for twitter settings
     if ($consumer_key eq '' || $consumer_secret eq '' || $access_token eq '' || $access_token_secret eq '') {
         die "twitter oauth credentials are not complete\n";
@@ -228,6 +239,7 @@ if ($twitter == 1) {
 } else {
     last;
 }
+
 }  # main while loop 
 
 
