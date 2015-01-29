@@ -10,7 +10,9 @@ use LWP::Simple;
 use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 use Net::Twitter::Lite::WithAPIv1_1;
 
-my $VERSION = '0.1.0';
+my $VERSION = '0.1.1';
+
+use Data::Dumper;
 
 
 ### variables and settings
@@ -20,10 +22,21 @@ my $sleep = 61;  # this is to get around their ratelimiter
 # also, if ratelimited flag is set, wait 15 minutes, try once, wait 15 minutes
 
 # twitter oauth
-my $consumer_key = '***REMOVED***';
-my $consumer_secret = '***REMOVED***';
-my $access_token = '2977770938-uQ49GrWiGdPgwWCSmOBFT9LpKjb9eVmPtfv0Rgs';
-my $access_token_secret = '2b0T6SeVusN9BAOgm6X1orqytzZrQwwQgVYgLoIT4kD0d';
+my ($consumer_key, $consumer_secret, $access_token, $access_token_secret);
+my $development = 0;  # set development mode to post to testing account
+if ($development == 1) {
+    # _renderorange
+    $consumer_key = '***REMOVED***';
+    $consumer_secret = '***REMOVED***';
+    $access_token = '***REMOVED***';
+    $access_token_secret = '***REMOVED***';
+} else {
+    # _daily_book
+    $consumer_key = '***REMOVED***';
+    $consumer_secret = '***REMOVED***';
+    $access_token = '***REMOVED***';
+    $access_token_secret = '***REMOVED***';
+}
 
 
 ### pre-processing
@@ -48,7 +61,7 @@ if (-e "$catalog") {
     # if older than one day
     if ($diff > 604800) {
         # delete the old catalog
-        unlink("$catalog") or warn "unable to delete old catalog: $!";
+        unlink("$catalog") or logger('warn', "unable to delete old catalog: $!") and warn "unable to delete old catalog: $!";
         get_catalog();
     }
 } else {
@@ -56,7 +69,7 @@ if (-e "$catalog") {
 }
 
 # open the catalog
-open (my $catalog_fh, "<", "$catalog") or die "cannot open catalog: $!";
+open (my $catalog_fh, "<", "$catalog") or logger('fatal', "cannot open catalog: $!") and die "cannot open catalog: $!";
 
 # read and parse for book text links
 my @files;
@@ -84,12 +97,13 @@ my $book_link = "gutenberg.org/cache/epub/$number/$file";
 # download the ebook
 my $rc = getstore("http://$book_link", "$file");
 if (is_error($rc)) {
+    logger('fatal', "there was an error downloading the book: $rc");
     die "there was an error downloading the book: $rc";
 }
 
 
 ### open the book, cleanup, and store
-open (my $raw_fh, "<", "$file") or die "unable to open book txt: $!";
+open (my $raw_fh, "<", "$file") or logger('fatal', "unable to open book txt: $!") and die "unable to open book txt: $!";
 
 # read, format, and store
 my ($title, $author);
@@ -103,18 +117,27 @@ while (<$raw_fh>) {
     }
     # check for ratelimiting
     if (/You have used Project Gutenberg quite a lot today or clicked through it really fast/) {
-        warn "blast, we've been ratelimited; still working out this method\n";
+        logger('warn', "we've been ratelimited; they're on to us!");
+        if ($verbose) {
+            warn "we've been ratelimited; they're on to us!\n";
+        }
         sleep 900;  # sleep 15 minutes
         last;
     }
     if (/The New McGuffey/) {
-        warn "ebook is The New McGuffey Reader\n";
+        logger('info', "ebook is The New McGuffey Reader - $file");
+        if ($verbose) {
+            warn "ebook is The New McGuffey Reader - $file\n";
+        }
         sleep $sleep;
         last;
     }
     if (/Language: /) {
         if ($_ !~ /English/) {
-            warn "ebook isn't in English\n";
+            logger('info', "ebook isn't in English - $file");
+            if ($verbose) {
+                warn "ebook isn't in English - $file\n";
+            }
             sleep $sleep;
             last;
         }
@@ -149,7 +172,7 @@ while (<$raw_fh>) {
 
 # close the book and delete it
 close ($raw_fh);
-unlink("$file") or warn "unable to delete book txt: $!";
+unlink("$file") or logger('warn', "unable to delete book txt: $!") and warn "unable to delete book txt: $!";
 
 
 ### process the data
@@ -204,7 +227,10 @@ foreach (@paragraphs) {
 
 # verify a quote was found
 if (! $quote) {
-    warn "no quote found\n";
+    if ($verbose) {
+        warn "no quote found - $file\n";
+    }
+    logger('info', "no quote found - $file");
     sleep $sleep;
     next;
 }
@@ -224,7 +250,7 @@ if ($verbose) {
 if ($twitter) {
     # check for twitter settings
     if ($consumer_key eq '' || $consumer_secret eq '' || $access_token eq '' || $access_token_secret eq '') {
-        die "twitter oauth credentials are not complete\n";
+        logger('fatal', "twitter oauth credentials are not complete") and die "twitter oauth credentials are not complete\n";
     }
     # instantiate object
     my $twitter = Net::Twitter::Lite::WithAPIv1_1->new(
@@ -234,9 +260,11 @@ if ($twitter) {
         access_token_secret => "$access_token_secret",
         ssl                 => 1,
     );
-    print "posting to Twitter\n";
+    if ($verbose) {
+        print "posting to twitter\n";
+    }
     my $result = $twitter->update("$quote$page_link");
-    print "\n";
+    logger('info', "posting to twitter");
     last;
 } else {
     last;
@@ -256,11 +284,12 @@ sub print_help {
 sub logger {
     my ($level, $msg) = @_;
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
+    my $month_formatted = $mon + 1;
     my $year_formatted = $year + 1900;
     if (open my $out, '>>', 'quote.log') {
         chomp $msg;
         # [01122015.091445] [info] download of catalog failed
-        print $out "[$mon$mday$year_formatted.$hour$min$sec] [$level] $msg\n";
+        print $out "[$month_formatted$mday$year_formatted.$hour$min$sec] [$level] $msg\n";
     }
 }
 
@@ -268,12 +297,13 @@ sub get_catalog {
     # download and store the new catalog archive
     my $rc = getstore('http://www.gutenberg.org/feeds/catalog.rdf.bz2', 'catalog.rdf.bz2');
     if (is_error($rc)) {
+        logger('fatal', "there was an error downloading the book catalog: $rc");
         die "there was an error downloading the book catalog: $rc";
     }
     undef($rc);
     # unpack the catalog file
-    bunzip2 'catalog.rdf.bz2' => "$catalog" or die "bunzip2 failed: $Bunzip2Error\n";
+    bunzip2 'catalog.rdf.bz2' => "$catalog" or logger('fatal', "bunzip2 failed: $Bunzip2Error") and die "bunzip2 failed: $Bunzip2Error\n";
     # delete the archived version
-    unlink('catalog.rdf.bz2') or warn "unable to delete catalog archive: $!";
+    unlink('catalog.rdf.bz2') or logger('warn', "unable to delete catalog archive: $!") and warn "unable to delete catalog archive: $!";
 }
 
