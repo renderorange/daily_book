@@ -253,6 +253,16 @@ sub print_help {
           "\n";
 }
 
+sub logger {
+    my ($level, $msg) = @_;
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
+    if (open my $out, '>>', 'quote.log') {
+        chomp $msg;
+        # [01122015.091445] [info] download of catalog failed
+        print $out "[$mon$mday] [$level] $msg\n";
+    }
+}
+
 sub get_catalog {
     # download and store the new catalog archive
     my $rc = getstore('http://www.gutenberg.org/feeds/catalog.rdf.bz2', 'catalog.rdf.bz2');
