@@ -46,7 +46,7 @@ if (-e "$catalog") {
     my $current_time = time;
     my $diff = $current_time - $mtime;
     # if older than one day
-    if ($diff > 86400) {
+    if ($diff > 604800) {
         # delete the old catalog
         unlink("$catalog") or warn "unable to delete old catalog: $!";
         get_catalog();
