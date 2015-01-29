@@ -181,6 +181,8 @@ my $quote;
 foreach (@paragraphs) {
     if (! defined $_) {  # shouldn't have to do this, change it later
         next;
+#    } elsif ($_ =~ /INDEX/) {
+#        next;
 #    } elsif ($_ =~ /Page [\d]/) {
 #        next;
 #    } elsif ($_ =~ /©/) {
