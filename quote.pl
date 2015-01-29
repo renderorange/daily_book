@@ -256,10 +256,11 @@ sub print_help {
 sub logger {
     my ($level, $msg) = @_;
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
+    my $year_formatted = $year + 1900;
     if (open my $out, '>>', 'quote.log') {
         chomp $msg;
         # [01122015.091445] [info] download of catalog failed
-        print $out "[$mon$mday] [$level] $msg\n";
+        print $out "[$mon$mday$year_formatted.$hour$min$sec] [$level] $msg\n";
     }
 }
 
