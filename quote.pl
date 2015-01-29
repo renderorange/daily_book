@@ -10,7 +10,7 @@ use LWP::Simple;
 use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 use Net::Twitter::Lite::WithAPIv1_1;
 
-my $VERSION = '0.0.6';
+my $VERSION = '0.1.0';
 
 
 ### variables and settings
