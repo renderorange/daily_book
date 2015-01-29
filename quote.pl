@@ -23,7 +23,7 @@ my $sleep = 61;  # this is to get around their ratelimiter
 
 # twitter oauth
 my ($consumer_key, $consumer_secret, $access_token, $access_token_secret);
-my $development = 0;  # set development mode to post to testing account
+my $development = 1;  # set development mode to post to testing account
 if ($development == 1) {
     # _renderorange
     $consumer_key = '***REMOVED***';
@@ -31,6 +31,8 @@ if ($development == 1) {
     $access_token = '***REMOVED***';
     $access_token_secret = '***REMOVED***';
 } else {
+    print "development mode is off\n";
+    sleep 5;
     # _daily_book
     $consumer_key = '***REMOVED***';
     $consumer_secret = '***REMOVED***';
