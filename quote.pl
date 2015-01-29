@@ -22,8 +22,8 @@ my $sleep = 61;  # this is to get around their ratelimiter
 # twitter oauth
 my $consumer_key = '***REMOVED***';
 my $consumer_secret = '***REMOVED***';
-my $access_token = '***REMOVED***';
-my $access_token_secret = '***REMOVED***';
+my $access_token = '2977770938-uQ49GrWiGdPgwWCSmOBFT9LpKjb9eVmPtfv0Rgs';
+my $access_token_secret = '2b0T6SeVusN9BAOgm6X1orqytzZrQwwQgVYgLoIT4kD0d';
 
 
 ### pre-processing
