@@ -10,16 +10,13 @@ use LWP::Simple;
 use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 use Net::Twitter::Lite::WithAPIv1_1;
 
-my $VERSION = '0.1.1';
+my $VERSION = '0.1.0';
 
 use Data::Dumper;
 
 
 ### variables and settings
-my $sleep = 61;  # this is to get around their ratelimiter
-# something else to try is randomizing the wait time, to ensure they aren't blocking based on recurring times
-# minimum, 61 seconds, randomized up to 2 minutes
-# also, if ratelimited flag is set, wait 15 minutes, try once, wait 15 minutes
+my $sleep = 61;  # to get around the ratelimiter; work in progress
 
 # twitter oauth
 my ($consumer_key, $consumer_secret, $access_token, $access_token_secret);
@@ -60,7 +57,7 @@ if (-e "$catalog") {
     my $mtime = (stat $catalog)[9];
     my $current_time = time;
     my $diff = $current_time - $mtime;
-    # if older than one day
+    # if older than one week
     if ($diff > 604800) {
         # delete the old catalog
         unlink("$catalog") or logger('warn', "unable to delete old catalog: $!") and warn "unable to delete old catalog: $!";
@@ -220,7 +217,7 @@ foreach (@paragraphs) {
 #        next;
     } elsif ($_ =~ /[:\;] $/) {  # paragraph ends with semicolon (due to formatting issue from earlier in the script)
         next;
-    } elsif ($_ !~ /^["]/) {  # only take lines that start with a quote (this has yielded the best results against false positive)
+    } elsif ($_ !~ /^["]/) {  # only take lines that start with a quote (this has yielded the best results against false positive, knowlingly missing a lot of good quotes)
         next;
     } elsif (length $_ > 90 && length $_ < 119) {
         $quote = $_;
@@ -286,17 +283,23 @@ sub print_help {
 sub logger {
     my ($level, $msg) = @_;
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
+    # format the times
     my $month_formatted = $mon + 1;
+    if ($month_formatted <= 9) { $month_formatted = '0' . $month_formatted; }
+    if ($mday <= 9) { $mday = '0' . $mday; }
+    if ($second <= 9) { $second = '0' . $second; }
+    if ($min <= 9) { $min = '0' . $min; }
+    if ($hour <= 9) { $hour = '0' . $hour; }
     my $year_formatted = $year + 1900;
-    if (open my $out, '>>', 'quote.log') {
+    if (open my $out, '>>', "quote.log") {
         chomp $msg;
-        # [01122015.091445] [info] download of catalog failed
         print $out "[$month_formatted$mday$year_formatted.$hour$min$sec] [$level] $msg\n";
     }
 }
 
 sub get_catalog {
     # download and store the new catalog archive
+    logger('info', 'downloading catalog');
     my $rc = getstore('http://www.gutenberg.org/feeds/catalog.rdf.bz2', 'catalog.rdf.bz2');
     if (is_error($rc)) {
         logger('fatal', "there was an error downloading the book catalog: $rc");
@@ -304,7 +307,7 @@ sub get_catalog {
     }
     undef($rc);
     # unpack the catalog file
-    bunzip2 'catalog.rdf.bz2' => "$catalog" or logger('fatal', "bunzip2 failed: $Bunzip2Error") and die "bunzip2 failed: $Bunzip2Error\n";
+    bunzip2 'catalog.rdf.bz2' => "$catalog" or logger('fatal', "bunzip2 on catalog failed: $Bunzip2Error") and die "bunzip2 on catalog failed: $Bunzip2Error\n";
     # delete the archived version
     unlink('catalog.rdf.bz2') or logger('warn', "unable to delete catalog archive: $!") and warn "unable to delete catalog archive: $!";
 }
