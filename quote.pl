@@ -16,6 +16,7 @@ use Data::Dumper;
 
 
 ### variables and settings
+open(STDERR, ">&STDOUT");  # redirect stderr to logger
 my $sleep = 61;  # to get around the ratelimiter; work in progress
 
 # twitter oauth
@@ -287,7 +288,7 @@ sub logger {
     my $month_formatted = $mon + 1;
     if ($month_formatted <= 9) { $month_formatted = '0' . $month_formatted; }
     if ($mday <= 9) { $mday = '0' . $mday; }
-    if ($second <= 9) { $second = '0' . $second; }
+    if ($sec <= 9) { $sec = '0' . $sec; }
     if ($min <= 9) { $min = '0' . $min; }
     if ($hour <= 9) { $hour = '0' . $hour; }
     my $year_formatted = $year + 1900;
