@@ -6,6 +6,7 @@ use strict;
 use warnings;
 
 use Getopt::Long;
+use Log::Log4perl;
 use LWP::Simple;
 use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 use Net::Twitter::Lite::WithAPIv1_1;
@@ -16,7 +17,6 @@ use Data::Dumper;
 
 
 ### variables and settings
-open(STDERR, ">&STDOUT");  # redirect stderr to logger
 my $sleep = 61;  # to get around the ratelimiter; work in progress
 
 # twitter oauth
@@ -24,7 +24,7 @@ my ($consumer_key, $consumer_secret, $access_token, $access_token_secret);
 my $development = 1;  # set development mode to post to testing account
 if ($development == 1) {
     # _renderorange
-    $consumer_key = '***REMOVED***';
+    $consumer_key = '3k14FeSchqIHAgwkP64GDWBRs';
     $consumer_secret = '***REMOVED***';
     $access_token = '***REMOVED***';
     $access_token_secret = '***REMOVED***';
@@ -41,14 +41,15 @@ if ($development == 1) {
 
 ### pre-processing
 # get commandline options
-my ($twitter, $verbose);
+my ($twitter, $silent);
 GetOptions ("twitter"  => sub { $twitter = 1 },
-            "verbose"  => sub { $verbose = 1 })
+            "silent"  => sub { $silent = 1 })
     or print_help() and exit;
-if ($twitter || $verbose) {
-    ;
-} else {
-    print_help() and exit;
+
+# print header
+if (!$silent) {
+    print "quote.pl\n" .
+          "v$VERSION\n\n";
 }
 
 # check if catalog exists
@@ -60,8 +61,13 @@ if (-e "$catalog") {
     my $diff = $current_time - $mtime;
     # if older than one week
     if ($diff > 604800) {
+        if (!$silent) { print "getting new catalog\n"; }
         # delete the old catalog
-        unlink("$catalog") or logger('warn', "unable to delete old catalog: $!") and warn "unable to delete old catalog: $!";
+        unlink("$catalog");
+        if ($@) {
+            logger('warn', "unable to delete old catalog: $!");
+            if (!$silent) { warn "unable to delete old catalog: $!" };
+        }  
         get_catalog();
     }
 } else {
@@ -118,7 +124,7 @@ while (<$raw_fh>) {
     # check for ratelimiting
     if (/You have used Project Gutenberg quite a lot today or clicked through it really fast/) {
         logger('warn', "we've been ratelimited; they're on to us!");
-        if ($verbose) {
+        if (!$silent) {
             warn "we've been ratelimited; they're on to us!\n";
         }
         sleep 900;  # sleep 15 minutes
@@ -126,7 +132,7 @@ while (<$raw_fh>) {
     }
     if (/The New McGuffey/) {
         logger('info', "ebook is The New McGuffey Reader - $file");
-        if ($verbose) {
+        if (!$silent) {
             warn "ebook is The New McGuffey Reader - $file\n";
         }
         sleep $sleep;
@@ -135,7 +141,7 @@ while (<$raw_fh>) {
     if (/Language: /) {
         if ($_ !~ /English/) {
             logger('info', "ebook isn't in English - $file");
-            if ($verbose) {
+            if (!$silent) {
                 warn "ebook isn't in English - $file\n";
             }
             sleep $sleep;
@@ -172,7 +178,11 @@ while (<$raw_fh>) {
 
 # close the book and delete it
 close ($raw_fh);
-unlink("$file") or logger('warn', "unable to delete book txt: $!") and warn "unable to delete book txt: $!";
+unlink("$file");
+if ($@) {
+    logger('warn', "unable to delete old catalog: $!");
+    if (!$silent) { warn "unable to delete book text: $!" };
+}
 
 
 ### process the data
@@ -226,18 +236,18 @@ foreach (@paragraphs) {
 }
 
 # verify a quote was found
-if (! $quote) {
-    if ($verbose) {
+if (!$quote) {
+    logger('info', "no quote found - $file");
+    if (!$silent) {
         warn "no quote found - $file\n";
     }
-    logger('info', "no quote found - $file");
     sleep $sleep;
     next;
 }
 
 
 ### print out verbose output
-if ($verbose) {
+if (!$silent) {
     print "title: $title\n" .
           "author: $author\n" .
           "\n" .
@@ -260,11 +270,11 @@ if ($twitter) {
         access_token_secret => "$access_token_secret",
         ssl                 => 1,
     );
-    if ($verbose) {
+    logger('info', "posting to twitter");
+        if (!$silent) {
         print "posting to twitter\n";
     }
-    my $result = $twitter->update("$quote$page_link");
-    logger('info', "posting to twitter");
+    $twitter->update("$quote$page_link");
     last;
 } else {
     last;
@@ -277,7 +287,7 @@ if ($twitter) {
 sub print_help {
     print "usage: ./quote.pl\n" .
           "-t|--twitter\t\t post to twitter\n" .
-          "-v|--verbose\t\t display verbose output\n" .
+          "-s|--silent\t\t dont display any output\n" .
           "\n";
 }
 
@@ -310,6 +320,10 @@ sub get_catalog {
     # unpack the catalog file
     bunzip2 'catalog.rdf.bz2' => "$catalog" or logger('fatal', "bunzip2 on catalog failed: $Bunzip2Error") and die "bunzip2 on catalog failed: $Bunzip2Error\n";
     # delete the archived version
-    unlink('catalog.rdf.bz2') or logger('warn', "unable to delete catalog archive: $!") and warn "unable to delete catalog archive: $!";
+    unlink('catalog.rdf.bz2');
+    if ($@) {
+        logger('warn', "unable to delete catalog archive: $!");
+        if (!$silent) { warn "unable to delete catalog archive: $!" };
+    }
 }
 
