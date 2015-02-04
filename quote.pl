@@ -6,7 +6,6 @@ use strict;
 use warnings;
 
 use Getopt::Long;
-use Log::Log4perl;
 use LWP::Simple;
 use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 use Net::Twitter::Lite::WithAPIv1_1;
@@ -17,14 +16,14 @@ use Data::Dumper;
 
 
 ### variables and settings
-my $sleep = 61;  # to get around the ratelimiter; work in progress
+my $sleep = 61;
 
 # twitter oauth
 my ($consumer_key, $consumer_secret, $access_token, $access_token_secret);
 my $development = 1;  # set development mode to post to testing account
 if ($development == 1) {
     # _renderorange
-    $consumer_key = '3k14FeSchqIHAgwkP64GDWBRs';
+    $consumer_key = '***REMOVED***';
     $consumer_secret = '***REMOVED***';
     $access_token = '***REMOVED***';
     $access_token_secret = '***REMOVED***';
@@ -45,6 +44,10 @@ my ($twitter, $silent);
 GetOptions ("twitter"  => sub { $twitter = 1 },
             "silent"  => sub { $silent = 1 })
     or print_help() and exit;
+if ($silent && !$twitter) {
+    print_help() and exit;
+}
+
 
 # print header
 if (!$silent) {
@@ -61,12 +64,10 @@ if (-e "$catalog") {
     my $diff = $current_time - $mtime;
     # if older than one week
     if ($diff > 604800) {
-        if (!$silent) { print "getting new catalog\n"; }
         # delete the old catalog
         unlink("$catalog");
         if ($@) {
             logger('warn', "unable to delete old catalog: $!");
-            if (!$silent) { warn "unable to delete old catalog: $!" };
         }  
         get_catalog();
     }
@@ -92,6 +93,7 @@ close ("$catalog_fh");
 ### begin processing
 # loop here, since a book isn't guaranteed to find a quote each time
 while (1) {  # main while loop 
+
 # grab random book number and build the link
 my $file = @files[rand @files];
 my $number = $file;
@@ -124,26 +126,18 @@ while (<$raw_fh>) {
     # check for ratelimiting
     if (/You have used Project Gutenberg quite a lot today or clicked through it really fast/) {
         logger('warn', "we've been ratelimited; they're on to us!");
-        if (!$silent) {
-            warn "we've been ratelimited; they're on to us!\n";
-        }
-        sleep 900;  # sleep 15 minutes
+        $sleep = 900;  # set the rest of the sleeps to 900
+        sleep $sleep;
         last;
     }
     if (/The New McGuffey/) {
         logger('info', "ebook is The New McGuffey Reader - $file");
-        if (!$silent) {
-            warn "ebook is The New McGuffey Reader - $file\n";
-        }
         sleep $sleep;
         last;
     }
     if (/Language: /) {
         if ($_ !~ /English/) {
             logger('info', "ebook isn't in English - $file");
-            if (!$silent) {
-                warn "ebook isn't in English - $file\n";
-            }
             sleep $sleep;
             last;
         }
@@ -181,7 +175,6 @@ close ($raw_fh);
 unlink("$file");
 if ($@) {
     logger('warn', "unable to delete old catalog: $!");
-    if (!$silent) { warn "unable to delete book text: $!" };
 }
 
 
@@ -238,9 +231,6 @@ foreach (@paragraphs) {
 # verify a quote was found
 if (!$quote) {
     logger('info', "no quote found - $file");
-    if (!$silent) {
-        warn "no quote found - $file\n";
-    }
     sleep $sleep;
     next;
 }
@@ -271,10 +261,16 @@ if ($twitter) {
         ssl                 => 1,
     );
     logger('info', "posting to twitter");
-        if (!$silent) {
+    if (!$silent) {
         print "posting to twitter\n";
     }
-    $twitter->update("$quote$page_link");
+    eval { $twitter->update("$quote$page_link") };
+    if ( $@ ) {
+        logger('warn', "post failed: $@");
+        if (!$silent) {
+            warn "post failed: $@\n";
+        }
+    }
     last;
 } else {
     last;
@@ -286,8 +282,8 @@ if ($twitter) {
 ### subs
 sub print_help {
     print "usage: ./quote.pl\n" .
+          "-s|--silent\t\t dont display any output (requires -t)\n" .
           "-t|--twitter\t\t post to twitter\n" .
-          "-s|--silent\t\t dont display any output\n" .
           "\n";
 }
 
@@ -323,7 +319,6 @@ sub get_catalog {
     unlink('catalog.rdf.bz2');
     if ($@) {
         logger('warn', "unable to delete catalog archive: $!");
-        if (!$silent) { warn "unable to delete catalog archive: $!" };
     }
 }
 
