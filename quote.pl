@@ -11,7 +11,7 @@ use LWP::Simple;
 use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 use Net::Twitter::Lite::WithAPIv1_1;
 
-my $VERSION = '0.1.0';
+my $VERSION = '0.1.1';
 
 use Data::Dumper;
 
@@ -95,187 +95,187 @@ close ("$catalog_fh");
 # loop here, since a book isn't guaranteed to find a quote each time
 while (1) {  # main while loop 
 
-# grab random book number and build the link
-my $file = @files[rand @files];
-my $number = $file;
-$number =~ s/\.txt\.utf8//;
-$number =~ s/pg//;
-my $page_link = "gutenberg.org/ebooks/$number";
-my $book_link = "gutenberg.org/cache/epub/$number/$file";
+    # grab random book number and build the link
+    my $file = @files[rand @files];
+    my $number = $file;
+    $number =~ s/\.txt\.utf8//;
+    $number =~ s/pg//;
+    my $page_link = "gutenberg.org/ebooks/$number";
+    my $book_link = "gutenberg.org/cache/epub/$number/$file";
 
-# download the ebook
-my $rc = getstore("http://$book_link", "$file");
-if (is_error($rc)) {
-    logger('fatal', "there was an error downloading the book: $rc");
-    die "there was an error downloading the book: $rc";
-}
-
-
-### open the book, cleanup, and store
-open (my $raw_fh, "<", "$file") or logger('fatal', "unable to open book txt: $!") and die "unable to open book txt: $!";
-
-# read, format, and store
-my ($title, $author);
-my ($_head, $_body, $_footer) = (0, 0, 0);
-my (@header, @body, @footer);
-
-while (<$raw_fh>) {
-    # check location within book
-    if ($_body != 1 && $_footer != 1) {
-        $_head = 1;
+    # download the ebook
+    my $rc = getstore("http://$book_link", "$file");
+    if (is_error($rc)) {
+        logger('fatal', "there was an error downloading the book: $rc");
+        die "there was an error downloading the book: $rc";
     }
-    # check for ratelimiting
-    if (/You have used Project Gutenberg quite a lot today or clicked through it really fast/) {
-        logger('warn', "we've been ratelimited; they're on to us!");
-        $sleep = 900;  # set the rest of the sleeps to 900
-        sleep $sleep;
-        last;
-    }
-    if (/The New McGuffey/) {
-        logger('info', "ebook is The New McGuffey Reader - $file");
-        sleep $sleep;
-        last;
-    }
-    if (/Language: /) {
-        if ($_ !~ /English/) {
-            logger('info', "ebook isn't in English - $file");
+
+
+    ### open the book, cleanup, and store
+    open (my $raw_fh, "<", "$file") or logger('fatal', "unable to open book txt: $!") and die "unable to open book txt: $!";
+
+    # read, format, and store
+    my ($title, $author);
+    my ($_head, $_body, $_footer) = (0, 0, 0);
+    my (@header, @body, @footer);
+
+    while (<$raw_fh>) {
+        # check location within book
+        if ($_body != 1 && $_footer != 1) {
+            $_head = 1;
+        }
+        # check for ratelimiting
+        if (/You have used Project Gutenberg quite a lot today or clicked through it really fast/) {
+            logger('warn', "we've been ratelimited; they're on to us!");
+            $sleep = 900;  # set the rest of the sleeps to 900
             sleep $sleep;
             last;
         }
-    }
-    if (/\*\*\* START OF THIS PROJECT/) {
-        $_head = 0;
-        $_body = 1;
-        next;  # we don't want to store this line
-    }
-    if (/\*\*\* END OF THIS PROJECT/) {
-        $_body = 0;
-        $_footer = 1;
-        next;  # we don't want to store this line either
-    }
-    # clean up the text
-    $_ =~ s/^\s+//;   # remove whitespace at the start of lines
-    $_ =~ s/  / /g;   # correct double spacing
-    $_ =~ s/\s+$/ /;  # correct spacing at the end of lines
-    # store head
-    if ($_head == 1) {
-        push (@header, $_);
-    }
-    # store body
-    if ($_body == 1) {
-        push (@body, $_);
-    }
-    # store footer
-    if ($_footer == 1) {
-        push (@footer, $_);
-    }
-}
-
-# close the book and delete it
-close ($raw_fh);
-unlink("$file");
-if ($@) {
-    logger('warn', "unable to delete old catalog: $!");
-}
-
-
-### process the data
-foreach (@header) {
-    # grab title and author
-    if (/Title:/) {
-        $title = $_;
-        $title =~ s/Title: //;
-    }
-    if (/Author:/) {
-        $author = $_;
-        $author =~ s/Author: //;
-    }
-}
-
-my ($build_variable, @paragraphs);
-foreach (@body) {
-    # assemble paragraphs
-    if ($_ ne '') {  # blank indicates end of paragraph
-        $build_variable .= $_;
-    } else {
-        push (@paragraphs, $build_variable);
-        $build_variable = ();  # clear out the $build_variable
-    }
-}
-
-# process through paragraphs, filtering out undesired strings, finding proper length
-my $quote;
-foreach (@paragraphs) {
-    if (! defined $_) {  # shouldn't have to do this, change it later
-        next;
-#    } elsif ($_ =~ /INDEX/) {
-#        next;
-#    } elsif ($_ =~ /Page [\d]/) {
-#        next;
-#    } elsif ($_ =~ /©/) {
-#        next; 
-#    } elsif (/\[ILLUSTRATION\:/) {
-#        next;
-#    } elsif ($_ =~ /End of the Project Gutenberg EBook/) {
-#        next;
-#    } elsif ($_ =~ /^[\[]/) {  # paragraph starts with [, example being 6388
-#        next;
-    } elsif ($_ =~ /[:\;] $/) {  # paragraph ends with semicolon (due to formatting issue from earlier in the script)
-        next;
-    } elsif ($_ !~ /^["]/) {  # only take lines that start with a quote (this has yielded the best results against false positive, knowlingly missing a lot of good quotes)
-        next;
-    } elsif (length $_ > 90 && length $_ < 119) {
-        $quote = $_;
-    }
-}
-
-# verify a quote was found
-if (!$quote) {
-    logger('info', "no quote found - $file");
-    sleep $sleep;
-    next;
-}
-
-
-### print out verbose output
-if (!$silent) {
-    print "title: $title\n" .
-          "author: $author\n" .
-          "\n" .
-          "$quote$page_link\n" .
-          "\n";
-}
-
-
-### twitter
-if ($twitter) {
-    # check for twitter settings
-    if ($consumer_key eq '' || $consumer_secret eq '' || $access_token eq '' || $access_token_secret eq '') {
-        logger('fatal', "twitter oauth credentials are not complete") and die "twitter oauth credentials are not complete\n";
-    }
-    # instantiate object
-    my $twitter = Net::Twitter::Lite::WithAPIv1_1->new(
-        consumer_key        => "$consumer_key",
-        consumer_secret     => "$consumer_secret",
-        access_token        => "$access_token",
-        access_token_secret => "$access_token_secret",
-        ssl                 => 1,
-    );
-    logger('info', "posting to twitter");
-    if (!$silent) {
-        print "posting to twitter\n";
-    }
-    eval { $twitter->update("$quote$page_link") };
-    if ( $@ ) {
-        logger('warn', "post failed: $@");
-        if (!$silent) {
-            warn "post failed: $@\n";
+        if (/The New McGuffey/) {
+            logger('info', "ebook is The New McGuffey Reader - $file");
+            sleep $sleep;
+            last;
+        }
+        if (/Language: /) {
+            if ($_ !~ /English/) {
+                logger('info', "ebook isn't in English - $file");
+                sleep $sleep;
+                last;
+            }
+        }
+        if (/\*\*\* START OF THIS PROJECT/) {
+            $_head = 0;
+            $_body = 1;
+            next;  # we don't want to store this line
+        }
+        if (/\*\*\* END OF THIS PROJECT/) {
+            $_body = 0;
+            $_footer = 1;
+            next;  # we don't want to store this line either
+        }
+        # clean up the text
+        $_ =~ s/^\s+//;   # remove whitespace at the start of lines
+        $_ =~ s/  / /g;   # correct double spacing
+        $_ =~ s/\s+$/ /;  # correct spacing at the end of lines
+        # store head
+        if ($_head == 1) {
+            push (@header, $_);
+        }
+        # store body
+        if ($_body == 1) {
+            push (@body, $_);
+        }
+        # store footer
+        if ($_footer == 1) {
+            push (@footer, $_);
         }
     }
-    last;
-} else {
-    last;
-}
+
+    # close the book and delete it
+    close ($raw_fh);
+    unlink("$file");
+    if ($@) {
+        logger('warn', "unable to delete old catalog: $!");
+    }
+
+
+    ### process the data
+    foreach (@header) {
+        # grab title and author
+        if (/Title:/) {
+            $title = $_;
+            $title =~ s/Title: //;
+        }
+        if (/Author:/) {
+            $author = $_;
+            $author =~ s/Author: //;
+        }
+    }
+
+    my ($build_variable, @paragraphs);
+    foreach (@body) {
+        # assemble paragraphs
+        if ($_ ne '') {  # blank indicates end of paragraph
+            $build_variable .= $_;
+        } else {
+            push (@paragraphs, $build_variable);
+            $build_variable = ();  # clear out the $build_variable
+        }
+    }
+
+    # process through paragraphs, filtering out undesired strings, finding proper length
+    my $quote;
+    foreach (@paragraphs) {
+        if (! defined $_) {  # shouldn't have to do this, change it later
+            next;
+    #    } elsif ($_ =~ /INDEX/) {
+    #        next;
+    #    } elsif ($_ =~ /Page [\d]/) {
+    #        next;
+    #    } elsif ($_ =~ /©/) {
+    #        next; 
+    #    } elsif (/\[ILLUSTRATION\:/) {
+    #        next;
+    #    } elsif ($_ =~ /End of the Project Gutenberg EBook/) {
+    #        next;
+    #    } elsif ($_ =~ /^[\[]/) {  # paragraph starts with [, example being 6388
+    #        next;
+        } elsif ($_ =~ /[:\;] $/) {  # paragraph ends with semicolon (due to formatting issue from earlier in the script)
+            next;
+        } elsif ($_ !~ /^["]/) {  # only take lines that start with a quote (this has yielded the best results against false positive, knowlingly missing a lot of good quotes)
+            next;
+        } elsif (length $_ > 90 && length $_ < 119) {
+            $quote = $_;
+        }
+    }
+
+    # verify a quote was found
+    if (!$quote) {
+        logger('info', "no quote found - $file");
+        sleep $sleep;
+        next;
+    }
+
+
+    ### print out verbose output
+    if (!$silent) {
+        print "title: $title\n" .
+              "author: $author\n" .
+              "\n" .
+              "$quote$page_link\n" .
+              "\n";
+    }
+
+
+    ### twitter
+    if ($twitter) {
+        # check for twitter settings
+        if ($consumer_key eq '' || $consumer_secret eq '' || $access_token eq '' || $access_token_secret eq '') {
+            logger('fatal', "twitter oauth credentials are not complete") and die "twitter oauth credentials are not complete\n";
+        }
+        # instantiate object
+        my $twitter = Net::Twitter::Lite::WithAPIv1_1->new(
+            consumer_key        => "$consumer_key",
+            consumer_secret     => "$consumer_secret",
+            access_token        => "$access_token",
+            access_token_secret => "$access_token_secret",
+            ssl                 => 1,
+        );
+        logger('info', "posting to twitter");
+        if (!$silent) {
+            print "posting to twitter\n";
+        }
+        eval { $twitter->update("$quote$page_link") };
+        if ( $@ ) {
+            logger('warn', "post failed: $@");
+            if (!$silent) {
+                warn "post failed: $@\n";
+            }
+        }
+        last;
+    } else {
+        last;
+    }
 
 }  # main while loop 
 
