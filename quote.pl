@@ -187,7 +187,6 @@ while (1) {  # main while loop
         logger('warn', "unable to delete old catalog: $!");
     }
 
-
     # process the data
     foreach (@header) {
         # grab title and author
@@ -245,7 +244,6 @@ while (1) {  # main while loop
         next;
     }
 
-
     # print out verbose output
     if (!$silent) {
         print "title: $title\n" .
@@ -254,7 +252,6 @@ while (1) {  # main while loop
               "$quote$page_link\n" .
               "\n";
     }
-
 
     # twitter
     if ($twitter) {
@@ -272,13 +269,13 @@ while (1) {  # main while loop
         );
         logger('info', "posting to twitter");
         if (!$silent) {
-            print "posting to twitter\n";
+            print "posting to twitter\n\n";
         }
         eval { $twitter->update("$quote$page_link") };
         if ( $@ ) {
             logger('warn', "post failed: $@");
             if (!$silent) {
-                warn "post failed: $@\n";
+                warn "post failed: $@\n\n";
             }
         }
         last;
