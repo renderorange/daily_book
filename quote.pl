@@ -41,11 +41,12 @@ if ($development == 1) {
 
 ### pre-processing
 # get commandline options
-my ($twitter, $silent);
-GetOptions ("twitter"  => sub { $twitter = 1 },
-            "silent"  => sub { $silent = 1 })
+my ($twitter, $silent, $manual);
+GetOptions ("twitter" => sub { $twitter = 1 },
+            "silent"  => sub { $silent = 1 },
+            "manual=i"  => \$manual )  # manual mode was only meant to be run in the event of debugging logic issues
     or print_help() and exit;
-if ($silent && !$twitter) {
+if ($silent && !$twitter || $manual && $silent) {
     print_help() and exit;
 }
 
@@ -93,11 +94,19 @@ close ("$catalog_fh");
 
 ### begin processing
 # loop here, since a book isn't guaranteed to find a quote each time
+my ($number, $file);
 while (1) {  # main while loop 
 
-    # grab random book number and build the link
-    my $file = @files[rand @files];
-    my $number = $file;
+    if (!$manual) {
+        # grab random book number and build the link
+        $file = @files[rand @files];
+        $number = $file;
+    } else {
+        # build the links manually
+        $file = "pg$manual.txt.utf8";
+        $number = $manual;
+    }
+
     $number =~ s/\.txt\.utf8//;
     $number =~ s/pg//;
     my $page_link = "gutenberg.org/ebooks/$number";
@@ -111,8 +120,8 @@ while (1) {  # main while loop
     }
 
 
-    ### open the book, cleanup, and store
-    open (my $raw_fh, "<", "$file") or logger('fatal', "unable to open book txt: $!") and die "unable to open book txt: $!";
+    # open the book, cleanup, and store
+    open (my $raw_fh, "<:encoding(UTF-8)", "$file") or logger('fatal', "unable to open book txt: $!") and die "unable to open book txt: $!";
 
     # read, format, and store
     my ($title, $author);
@@ -179,7 +188,7 @@ while (1) {  # main while loop
     }
 
 
-    ### process the data
+    # process the data
     foreach (@header) {
         # grab title and author
         if (/Title:/) {
@@ -237,7 +246,7 @@ while (1) {  # main while loop
     }
 
 
-    ### print out verbose output
+    # print out verbose output
     if (!$silent) {
         print "title: $title\n" .
               "author: $author\n" .
@@ -247,7 +256,7 @@ while (1) {  # main while loop
     }
 
 
-    ### twitter
+    # twitter
     if ($twitter) {
         # check for twitter settings
         if ($consumer_key eq '' || $consumer_secret eq '' || $access_token eq '' || $access_token_secret eq '') {
@@ -285,6 +294,7 @@ sub print_help {
     print "usage: ./quote.pl\n" .
           "-s|--silent\t\t dont display any output (requires -t)\n" .
           "-t|--twitter\t\t post to twitter\n" .
+          "-m|--manual\t\t manually specify the book number\n" . 
           "\n";
 }
 
