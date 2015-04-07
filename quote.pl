@@ -228,8 +228,6 @@ while (1) {  # main while loop
     #        next;
     #    } elsif ($_ =~ /^[\[]/) {  # paragraph starts with [, example being 6388
     #        next;
-        } elsif ($_ =~ /^["_]/) {
-            next;
         } elsif ($_ =~ /[:\;] $/) {  # paragraph ends with semicolon (due to formatting issue from earlier in the script)
             next;
         } elsif ($_ !~ /^["]/) {  # only take lines that start with a quote (this has yielded the best results against false positive, knowlingly missing a lot of good quotes)
