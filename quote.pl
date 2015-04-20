@@ -21,7 +21,7 @@ my $sleep = 61;
 
 # twitter oauth
 my ($consumer_key, $consumer_secret, $access_token, $access_token_secret);
-my $development = 0;  # set development mode to post to testing account
+my $development = 1;  # set development mode to post to testing account
 if ($development == 1) {
     # _renderorange
     $consumer_key = '***REMOVED***';
