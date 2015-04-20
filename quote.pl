@@ -11,7 +11,7 @@ use LWP::Simple;
 use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 use Net::Twitter::Lite::WithAPIv1_1;
 
-my $VERSION = '0.1.1';
+my $VERSION = '0.1.2';
 
 use Data::Dumper;
 
@@ -21,7 +21,7 @@ my $sleep = 61;
 
 # twitter oauth
 my ($consumer_key, $consumer_secret, $access_token, $access_token_secret);
-my $development = 1;  # set development mode to post to testing account
+my $development = 0;  # set development mode to post to testing account
 if ($development == 1) {
     # _renderorange
     $consumer_key = '***REMOVED***';
@@ -231,6 +231,8 @@ while (1) {  # main while loop
         } elsif ($_ =~ /[:\;] $/) {  # paragraph ends with semicolon (due to formatting issue from earlier in the script)
             next;
         } elsif ($_ !~ /^["]/) {  # only take lines that start with a quote (this has yielded the best results against false positive, knowlingly missing a lot of good quotes)
+            next;
+        } elsif ($_ !~ /["] $/) {  # if doesn't end with a quote
             next;
         } elsif (length $_ > 90 && length $_ < 119) {
             $quote = $_;
