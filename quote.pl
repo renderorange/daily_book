@@ -11,9 +11,7 @@ use LWP::Simple;
 use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 use Net::Twitter::Lite::WithAPIv1_1;
 
-my $VERSION = '0.1.3';
-
-use Data::Dumper;
+my $VERSION = '0.1.2';
 
 
 ### variables and settings
@@ -137,29 +135,35 @@ MAIN: while (1) {
         # check for ratelimiting
         if (/You have used Project Gutenberg quite a lot today or clicked through it really fast/) {
             logger('warn', "we've been ratelimited; they're on to us!");
+            close ($raw_fh);
+            unlink("$file");
             if ($manual) {
                 die "we've been ratelimited, they're on to us!\n\n";
             }
             $sleep = 900;  # set the rest of the sleeps to 900
             sleep $sleep;
-            next MAIN;  # skip out to next in the main loop
+            next MAIN;
         }
         if (/The New McGuffey/) {
             logger('info', "ebook is The New McGuffey Reader - $file");
+            close ($raw_fh);
+            unlink("$file");
             if ($manual) {
                 die "ebook is The New McGuffey Reader\n\n";
             }
             sleep $sleep;
-            next MAIN;  # skip out to the next in the main loop
+            next MAIN;
         }
         if (/Language: /) {
             if ($_ !~ /English/) {
                 logger('info', "ebook isn't in English - $file");
+                close ($raw_fh);
+                unlink("$file");
                 if ($manual) {
                     die "ebook isn't in English\n\n";
                 }
                 sleep $sleep;
-                next MAIN;  # skip out to the next in the main loop
+                next MAIN;
             }
         }
         if (/\*\*\* START OF THIS PROJECT/) {
@@ -194,7 +198,7 @@ MAIN: while (1) {
     close ($raw_fh);
     unlink("$file");
     if ($@) {
-        logger('warn', "unable to delete old catalog: $!");
+        logger('warn', "unable to delete ebook: $!");
     }
 
     # process the data
