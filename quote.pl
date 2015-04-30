@@ -11,9 +11,7 @@ use LWP::Simple;
 use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 use Net::Twitter::Lite::WithAPIv1_1;
 
-my $VERSION = '0.1.1';
-
-use Data::Dumper;
+my $VERSION = '0.1.2';
 
 
 ### variables and settings
@@ -29,8 +27,6 @@ if ($development == 1) {
     $access_token = '***REMOVED***';
     $access_token_secret = '***REMOVED***';
 } else {
-    print "development mode is off\n";
-    sleep 5;
     # _daily_book
     $consumer_key = '***REMOVED***';
     $consumer_secret = '***REMOVED***';
@@ -55,6 +51,10 @@ if ($silent && !$twitter || $manual && $silent) {
 if (!$silent) {
     print "quote.pl\n" .
           "v$VERSION\n\n";
+    if ($development == 1) {
+        print "development mode is off\n\n";
+        sleep 5;
+    }
 }
 
 # check if catalog exists
@@ -95,7 +95,7 @@ close ("$catalog_fh");
 ### begin processing
 # loop here, since a book isn't guaranteed to find a quote each time
 my ($number, $file);
-while (1) {  # main while loop 
+MAIN: while (1) {
 
     if (!$manual) {
         # grab random book number and build the link
@@ -136,20 +136,35 @@ while (1) {  # main while loop
         # check for ratelimiting
         if (/You have used Project Gutenberg quite a lot today or clicked through it really fast/) {
             logger('warn', "we've been ratelimited; they're on to us!");
+            close ($raw_fh);
+            unlink("$file");
+            if ($manual) {
+                die "we've been ratelimited, they're on to us!\n\n";
+            }
             $sleep = 900;  # set the rest of the sleeps to 900
             sleep $sleep;
-            last;
+            next MAIN;
         }
         if (/The New McGuffey/) {
             logger('info', "ebook is The New McGuffey Reader - $file");
+            close ($raw_fh);
+            unlink("$file");
+            if ($manual) {
+                die "ebook is The New McGuffey Reader\n\n";
+            }
             sleep $sleep;
-            last;
+            next MAIN;
         }
         if (/Language: /) {
             if ($_ !~ /English/) {
                 logger('info', "ebook isn't in English - $file");
+                close ($raw_fh);
+                unlink("$file");
+                if ($manual) {
+                    die "ebook isn't in English\n\n";
+                }
                 sleep $sleep;
-                last;
+                next MAIN;
             }
         }
         if (/\*\*\* START OF THIS PROJECT/) {
@@ -184,7 +199,7 @@ while (1) {  # main while loop
     close ($raw_fh);
     unlink("$file");
     if ($@) {
-        logger('warn', "unable to delete old catalog: $!");
+        logger('warn', "unable to delete ebook: $!");
     }
 
     # process the data
