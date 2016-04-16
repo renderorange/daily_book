@@ -6,12 +6,13 @@ use utf8;
 use strict;
 use warnings;
 
+use local::lib;
 use Getopt::Long;
 use LWP::Simple;
 use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 use Net::Twitter::Lite::WithAPIv1_1;
 
-my $VERSION = '0.1.2';
+my $VERSION = '0.1.3';
 
 
 ### variables and settings
@@ -58,23 +59,23 @@ if (!$silent) {
 
 # check if catalog exists
 my $catalog = 'catalog.rdf';
-if (-e "$catalog") {
-    # check date
-    my $mtime = (stat $catalog)[9];
-    my $current_time = time;
-    my $diff = $current_time - $mtime;
-    # if older than one week
-    if ($diff > 604800) {
-        # delete the old catalog
-        unlink("$catalog");
-        if ($@) {
-            logger('warn', "unable to delete old catalog: $!");
-        }  
-        get_catalog();
-    }
-} else {
-    get_catalog();
-}
+#if (-e "$catalog") {
+#    # check date
+#    my $mtime = (stat $catalog)[9];
+#    my $current_time = time;
+#    my $diff = $current_time - $mtime;
+#    # if older than one week
+#    if ($diff > 604800) {
+#        # delete the old catalog
+#        unlink("$catalog");
+#        if ($@) {
+#            logger('warn', "unable to delete old catalog: $!");
+#        }  
+#        get_catalog();
+#    }
+#} else {
+#    get_catalog();
+#}
 
 # open the catalog
 open (my $catalog_fh, "<", "$catalog") or logger('fatal', "cannot open catalog: $!") and die "cannot open catalog: $!";
