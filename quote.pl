@@ -12,7 +12,7 @@ use LWP::Simple;
 use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 use Net::Twitter::Lite::WithAPIv1_1;
 
-my $VERSION = '0.1.3';
+my $VERSION = '0.1.4';
 
 
 ### variables and settings
@@ -23,16 +23,16 @@ my ($consumer_key, $consumer_secret, $access_token, $access_token_secret);
 my $development = 0;  # set development mode to post to testing account
 if ($development == 1) {
     # _renderorange
-    $consumer_key = '***REMOVED***';
-    $consumer_secret = '***REMOVED***';
-    $access_token = '***REMOVED***';
-    $access_token_secret = '***REMOVED***';
+    $consumer_key = '';
+    $consumer_secret = '';
+    $access_token = '';
+    $access_token_secret = '';
 } else {
     # _daily_book
-    $consumer_key = '***REMOVED***';
-    $consumer_secret = '***REMOVED***';
-    $access_token = '***REMOVED***';
-    $access_token_secret = '***REMOVED***';
+    $consumer_key = '';
+    $consumer_secret = '';
+    $access_token = '';
+    $access_token_secret = '';
 }
 
 
