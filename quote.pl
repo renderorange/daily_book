@@ -8,7 +8,6 @@ use warnings;
 
 use local::lib;
 use Getopt::Long;
-use File::Slurper 'read_lines';
 use LWP::Simple;
 use Net::Twitter::Lite::WithAPIv1_1;
 
@@ -21,7 +20,7 @@ GetOptions ("twitter"   => \$twitter,
             "manual=i"  => \$manual, 
             "help"      => \$help)
     or print_help() and exit;
-if ($silent && !$twitter || $manual && $silent || $manual && $twitter || $help) {  # these options don't particularly make much sense run together
+if ($silent && !$twitter || $manual && $silent || $help) {  # these options don't particularly make much sense run together, also, if help
     print_help() and exit;
 }
 
@@ -35,25 +34,30 @@ my $twitter_object;
 my $testing_mode = 1;                          # this is meant to test post to a twitter account without followers
 if ($testing_mode) { $rc = '.quote.rc.dev'; }  # hard coding it here is a failsafe for me, as opposed to running from commandline
 
-# make sure the rc file is there
+# if we're using twitter
 if ($twitter) {
+    # verify the rc is there
     if (! -e "$rc") {  # if rc is not present
         print "$rc is not present\n" .
               "please see github.com/renderorange/daily_book for setup details\n\n";
         exit 1;
     }
     # load and verify config from rc file
-    foreach (read_lines("$rc")) {  # [TODO] the verification below could stand to be more specific, verifying values as well
-        if (/^#/) { next; }  # filter out comments
-        my ($key, $value) = split (/:/);  # [TODO] add trim of whitespace, run through map on $_, through the split list
-        # verify config contains what's expected
-        if ($key !~ /^account$|^consumer_key$|^consumer_secret$|^access_token$|^access_token_secret$/) {
-            print "$rc doesn't appear to contain what's needed\n" .
-                  "please see github.com/renderorange/daily_book for setup details\n\n";
-            exit 1;
+    open (my $config_fh, "<", "$rc") or print "unable to open book txt: $!\n\n" and exit 1;
+        while (<$config_fh>) {  # [TODO] the verification below could stand to be more specific, verifying values as well
+            if (/^#/) { next; }  # filter out comments
+            my ($key, $value) = split (/:/);  # [TODO] add trim of whitespace, run through map on $_, through the split list
+            # verify config contains what's expected
+            if ($key !~ /^account$|^consumer_key$|^consumer_secret$|^access_token$|^access_token_secret$/) {
+                print "$rc doesn't appear to contain what's needed\n" .
+                      "please see github.com/renderorange/daily_book for setup details\n\n";
+                exit 1;
+            }
+            $config{$key} = $value;  # $config{'account'} = values can be accessed like so
         }
-        $config{$key} = $value;  # $config{'account'} = values can be accessed like so
-    }
+    # close the config
+    close ($config_fh);
+
     # instantiate twitter object for API access
     $twitter_object = Net::Twitter::Lite::WithAPIv1_1->new(
         consumer_key        => $config{consumer_key},
@@ -67,7 +71,7 @@ if ($twitter) {
 # print header
 if (!$silent) {
     print "quote.pl\n\n";
-    if ($twitter && $testing_mode == 1) {  # if testing_mode is not on
+    if ($twitter && $testing_mode) {
         print "testing mode is on\n" .
               "account: $config{'account'}\n\n";
         sleep 5;
@@ -129,13 +133,15 @@ MAIN: while (1) {
 
     # read, format, and store
     my ($title, $author);
-    my ($_head, $_body, $_footer) = (0, 0, 0);
+    my ($_head, $_body, $_foot) = (0, 0, 0);
     my (@header, @body, @footer);
 
     while (<$raw_fh>) {
-        # check location within book
-        if ($_body != 1 && $_footer != 1) {
-            $_head = 1;
+        # gutenberg formats their ebooks with section markers
+        # and since each section contains different kinds  of information which we want
+        # as we read the book by line, we track the markers based on the section of the book we're at
+        if ($_body == 0 && $_foot == 0) {  # we'll only match this inside the head
+            $_head = 1;                      # or at the very start of the book
         }
         # check for ratelimiting
         if (/You have used Project Gutenberg quite a lot today or clicked through it really fast/) {
@@ -147,9 +153,10 @@ MAIN: while (1) {
                 exit 1;
             }
             $sleep = 900;  # set the rest of the sleeps to 900
-            sleep $sleep;
+            sleep $sleep;  # gotta give them time to cool off, they might forget we're here
             next MAIN;
         }
+        # [TODO] create logic here for skipping these checks, unless in head
         if (/The New McGuffey/) {
             logger('info', "ebook is The New McGuffey Reader - $file");
             close ($raw_fh);
@@ -176,13 +183,13 @@ MAIN: while (1) {
         }
         if (/\*\*\* START OF THIS PROJECT/) {
             $_head = 0;
-            $_body = 1;
-            next;  # we don't want to store this line
+            $_body = 1;  # set the new marker
+            next;        # but don't store this line
         }
         if (/\*\*\* END OF THIS PROJECT/) {
             $_body = 0;
-            $_footer = 1;
-            next;  # we don't want to store this line either
+            $_foot = 1;  # set the new marker again
+            next;        # don't store this line either
         }
         # clean up the text
         $_ =~ s/^\s+//;   # remove whitespace at the start of lines
@@ -197,10 +204,10 @@ MAIN: while (1) {
             push (@body, $_);
         }
         # store footer
-        if ($_footer == 1) {
+        if ($_foot == 1) {
             push (@footer, $_);
         }
-    }
+    }  # end of read loop
 
     # close the book and delete it
     close ($raw_fh);
@@ -296,7 +303,7 @@ sub print_help {
           "options:\n" .
           "\t-t|--twitter\t\tpost the quote to twitter\n\n" .
           "\t-s|--silent\t\tdont display any output (requires -t)\n\n" .
-          "\t-m|--manual 1234\tmanually specify the book number (disallowed with -t)\n\n" .
+          "\t-m|--manual 1234\tmanually specify the book number\n\n" .
           "\t-h|--help\t\tdisplays this dialogue\n\n" .
           "\n";
 }
