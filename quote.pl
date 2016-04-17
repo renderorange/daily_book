@@ -21,7 +21,7 @@ GetOptions ("twitter"   => \$twitter,
             "manual=i"  => \$manual, 
             "help"      => \$help)
     or print_help() and exit;
-if ($silent && !$twitter || $manual && $silent || $help) {  # these options don't particularly make much sense run together
+if ($silent && !$twitter || $manual && $silent || $manual && $twitter || $help) {  # these options don't particularly make much sense run together
     print_help() and exit;
 }
 
@@ -296,8 +296,7 @@ sub print_help {
           "options:\n" .
           "\t-t|--twitter\t\tpost the quote to twitter\n\n" .
           "\t-s|--silent\t\twont display any output (requires -t)\n\n" .
-          "\t-m|--manual 1234\tmanually specify the book number\n" .
-          "\t\t\t\tthen fetch straight from gutenberg\n\n" .
+          "\t-m|--manual 1234\tmanually specify the book number (disallowed with -t)\n\n" .
           "\t-h|--help\t\tdisplays this dialogue\n\n" .
           "\n";
 }
