@@ -157,10 +157,11 @@ MAIN: while (1) {
                 print "we've been ratelimited, they're on to us!\n\n";
                 exit 1;
             }
-            $sleep = 900;  # set the rest of the sleeps to 900
+            $sleep = 900;  # set the rest of the sleeps to 900 (probably a bit larger than needed)
+            logger('info', "setting sleep to 900 secs between books");
             sleep $sleep;  # gotta give them time to cool off, they might forget we're here
-            next MAIN;
-        }
+            next MAIN;     # the sleep values came about after a lot of trying to figure out their ratelimiting system.
+        }                  # 61 and 900 seemed to be work consistently as I was testing, so I just left them there.
         # [TODO] create logic here for skipping these checks, unless in head
         if (/The New McGuffey/) {
             logger('info', "ebook is The New McGuffey Reader - $file");
@@ -171,7 +172,7 @@ MAIN: while (1) {
                 exit 1;
             }
             sleep $sleep;
-            next MAIN;
+            next MAIN;  # The New McGuffey Reader failed the most in testing, so I just skip it altogether.
         }
         if (/Language: /) {
             if ($_ !~ /English/) {
@@ -183,7 +184,7 @@ MAIN: while (1) {
                     exit 1;
                 }
                 sleep $sleep;
-                next MAIN;
+                next MAIN;  # [DID YOU KNOW] sometimes ebooks are labeled English, but read creole ¯\_(ツ)_/¯
             }
         }
         if (/\*\*\* START OF THIS PROJECT/) {
@@ -214,7 +215,8 @@ MAIN: while (1) {
         }
     }  # end of read loop
 
-    # close the book and delete it
+    # we're all done reading this book
+    # close and delete it
     close ($raw_fh);
     unlink("$file");
     if ($@) {
@@ -234,6 +236,8 @@ MAIN: while (1) {
         }
     }
 
+    # gutenberg formats their lines and paragraphs with just a block of whitespace
+    # so we need to correct that here.
     my ($build_variable, @paragraphs);
     foreach (@body) {
         # assemble paragraphs
@@ -256,7 +260,7 @@ MAIN: while (1) {
             next;
         } elsif ($_ !~ /["] $/) {  # if doesn't end with a quote
             next;
-        } elsif (length $_ > 90 && length $_ < 119) {
+        } elsif (length $_ > 90 && length $_ < 119) {  # make sure the length is good for twitter
             $quote = $_;
         }
     }
