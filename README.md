@@ -31,11 +31,11 @@ usage: ./quote.pl -s -t
 options:
 	-t|--twitter		post the quote to twitter
 
-	-s|--silent		dont display any output (requires -t)
+	-s|--silent		    dont display any output (requires -t)
 
 	-m|--manual 1234	manually specify the book number
 
-	-h|--help		displays this dialogue
+	-h|--help		    displays this dialogue
 ```
 
 quote.pl can be run without any options, and will simply go out and get a quote, then show it to you.
