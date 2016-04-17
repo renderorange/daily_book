@@ -79,35 +79,21 @@ if (!$silent) {
 
 # check if catalog exists
 my $catalog = 'catalog.rdf';
-#if (-e "$catalog") {
-#    # check date
-#    my $mtime = (stat $catalog)[9];
-#    my $current_time = time;
-#    my $diff = $current_time - $mtime;
-#    # if older than one week
-#    if ($diff > 604800) {
-#        # delete the old catalog
-#        unlink("$catalog");
-#        if ($@) {
-#            logger('warn', "unable to delete old catalog: $!");
-#        }  
-#        get_catalog();
-#    }
-#} else {
-#    get_catalog();
-#}
-
-# open the catalog
-open (my $catalog_fh, "<", "$catalog") or logger('fatal', "cannot open catalog: $!") and die "cannot open catalog: $!";
-
-# read and parse for book text links
-my @files;
-while (<$catalog_fh>) {
-    if ($_ =~ m/(pg[\d]+\.txt\.utf8)/) {  # match the pg naming convention
-        push (@files, $1);
-    }
+if (! -e "$catalog") {
+    print "$catalog doesn't exist\n" .
+          "please see github.com/renderorange/daily_book for setup details\n\n";
+    exit 1;
 }
 
+# get the info from the catalog
+open (my $catalog_fh, "<", "$catalog") or logger('fatal', "cannot open catalog: $!") and die "cannot open catalog: $!";
+    # read and parse for book text links
+    my @files;
+    while (<$catalog_fh>) {
+        if ($_ =~ m/(pg[\d]+\.txt\.utf8)/) {  # match the pg naming convention
+            push (@files, $1);
+        }
+    }
 # close the catalog
 close ("$catalog_fh");
 
@@ -337,23 +323,5 @@ sub logger {
     if (open my $out, '>>', "quote.log") {
         chomp $msg;
         print $out "[$month_formatted$mday$year_formatted.$hour$min$sec] [$level] $msg\n";
-    }
-}
-
-sub get_catalog {
-    # download and store the new catalog archive
-    logger('info', 'downloading catalog');
-    my $rc = getstore('http://www.gutenberg.org/feeds/catalog.rdf.bz2', 'catalog.rdf.bz2');
-    if (is_error($rc)) {
-        logger('fatal', "there was an error downloading the book catalog: $rc");
-        die "there was an error downloading the book catalog: $rc";
-    }
-    undef($rc);
-    # unpack the catalog file
-    bunzip2 'catalog.rdf.bz2' => "$catalog" or logger('fatal', "bunzip2 on catalog failed: $Bunzip2Error") and die "bunzip2 on catalog failed: $Bunzip2Error\n";
-    # delete the archived version
-    unlink('catalog.rdf.bz2');
-    if ($@) {
-        logger('warn', "unable to delete catalog archive: $!");
     }
 }
