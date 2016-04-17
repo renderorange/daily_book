@@ -15,12 +15,13 @@ use Net::Twitter::Lite::WithAPIv1_1;
 
 ### pre-processing
 # get commandline options
-my ($twitter, $silent, $manual);
-GetOptions ("twitter" => \$twitter,
-            "silent"  => \$silent,
-            "manual=i"  => \$manual )  # manual mode is intended to be run for debugging purposes only
+my ($twitter, $silent, $manual, $help);
+GetOptions ("twitter"   => \$twitter,
+            "silent"    => \$silent,
+            "manual=i"  => \$manual, 
+            "help"      => \$help)
     or print_help() and exit;
-if ($silent && !$twitter || $manual && $silent) {  # these options don't particularly make much sense run together
+if ($silent && !$twitter || $manual && $silent || $help) {  # these options don't particularly make much sense run together
     print_help() and exit;
 }
 
@@ -290,10 +291,14 @@ MAIN: while (1) {
 
 ### subs
 sub print_help {
-    print "usage: ./quote.pl\n" .
-          "-s|--silent\t\t dont display any output (requires -t)\n" .
-          "-t|--twitter\t\t post to twitter\n" .
-          "-m|--manual\t\t manually specify the book number\n" . 
+    print "usage: ./quote.pl -s -t\n\n" .
+          "options:\n" .
+          "\t-s|--silent\t\twont display any output (requires -t)\n\n" .
+          "\t-t|--twitter\t\tpost the quote to twitter\n\n" .
+          "\t-m|--manual 1234\tmanually specify the book number\n" .
+          "\t\t\t\tmanual mode is intended to be run for debugging purposes only\n" .
+          "\t\t\t\tand expects the ebook stored locally in the pwd - pg37104.txt.utf8\n\n" .
+          "\t-h|--help\t\tdisplays this dialogue\n\n" .
           "\n";
 }
 
