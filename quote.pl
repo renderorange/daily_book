@@ -295,7 +295,7 @@ sub print_help {
     print "usage: ./quote.pl -s -t\n\n" .
           "options:\n" .
           "\t-t|--twitter\t\tpost the quote to twitter\n\n" .
-          "\t-s|--silent\t\twont display any output (requires -t)\n\n" .
+          "\t-s|--silent\t\tdont display any output (requires -t)\n\n" .
           "\t-m|--manual 1234\tmanually specify the book number (disallowed with -t)\n\n" .
           "\t-h|--help\t\tdisplays this dialogue\n\n" .
           "\n";
