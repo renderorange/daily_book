@@ -41,7 +41,7 @@ options:
 quote.pl can be run without any options, and will simply go out and get a quote, then show it to you.
 
 ```
-blaine@cen ~/dev/projects/daily_book (master *) $ perl quote.pl
+$ perl quote.pl
 quote.pl
 
 finding a quote, this may take some time
