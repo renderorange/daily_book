@@ -84,7 +84,7 @@ if (! -e "$catalog") {
     exit 1;
 }
 
-# get the info from the catalog
+# get the info from the catalog  # [TODO] the usage of chained ands may be creating too much dependency on loggers success, before print and exit. it could be an issue. should be redone
 open (my $catalog_fh, "<", "$catalog") or logger('fatal', "cannot open catalog: $!") and print "cannot open catalog: $!\n\n" and exit 1;
     # read and parse for book text links
     my @files;
