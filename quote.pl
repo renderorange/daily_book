@@ -8,51 +8,71 @@ use warnings;
 
 use local::lib;
 use Getopt::Long;
+use File::Slurper 'read_lines';
 use LWP::Simple;
 use IO::Uncompress::Bunzip2 qw(bunzip2 $Bunzip2Error);
 use Net::Twitter::Lite::WithAPIv1_1;
 
-my $VERSION = '0.1.4';
-
-
-### variables and settings
-my $sleep = 61;
-
-# twitter oauth
-my ($consumer_key, $consumer_secret, $access_token, $access_token_secret);
-my $development = 0;  # set development mode to post to testing account
-if ($development == 1) {
-    # _renderorange
-    $consumer_key = '';
-    $consumer_secret = '';
-    $access_token = '';
-    $access_token_secret = '';
-} else {
-    # _daily_book
-    $consumer_key = '';
-    $consumer_secret = '';
-    $access_token = '';
-    $access_token_secret = '';
-}
+my $VERSION = '0.1.5';
 
 
 ### pre-processing
 # get commandline options
 my ($twitter, $silent, $manual);
-GetOptions ("twitter" => sub { $twitter = 1 },
-            "silent"  => sub { $silent = 1 },
-            "manual=i"  => \$manual )  # manual mode was only meant to be run in the event of debugging logic issues
+GetOptions ("twitter" => \$twitter,
+            "silent"  => \$silent,
+            "manual=i"  => \$manual )  # manual mode is intended to be run for debugging purposes only
     or print_help() and exit;
-if ($silent && !$twitter || $manual && $silent) {
+if ($silent && !$twitter || $manual && $silent) {  # these options don't particularly make much sense run together
     print_help() and exit;
+}
+
+# variables and settings
+my $sleep = 61;
+my $rc = '.quote.rc';
+my %config;
+my $twitter_object;
+
+# testing mode                                 # with testing mode set to 1, quote.pl will load a different rc file
+my $testing_mode = 1;                          # this is meant to test post to a twitter account without followers
+if ($testing_mode) { $rc = '.quote.rc.dev'; }  # hard coding it here is a failsafe for me, as opposed to running from commandline
+
+# make sure the rc file is there
+if ($twitter) {
+    if (! -e "$rc") {  # if rc is not present
+        print "$rc is not present\n" .
+              "please see github.com/renderorange/daily_book for setup details\n\n";
+        exit 1;
+    }
+    # load and verify config from rc file
+    foreach (read_lines("$rc")) {  # [TODO] the verification below could stand to be more specific, verifying values as well
+        if (/^#/) { next; }  # filter out comments
+        my ($key, $value) = split (/:/);  # [TODO] add trim of whitespace, run through map on $_, through the split list
+        # verify config contains what's expected
+        if ($key !~ /^account$|^consumer_key$|^consumer_secret$|^access_token$|^access_token_secret$/) {
+            print "$rc doesn't appear to contain what's needed\n" .
+                  "please see github.com/renderorange/daily_book for setup details\n\n";
+            exit 1;
+        }
+        $config{$key} = $value;  # $config{'account'} = values can be accessed like so
+    }
+    # instantiate twitter object for API access
+    $twitter_object = Net::Twitter::Lite::WithAPIv1_1->new(
+        consumer_key        => $config{consumer_key},
+        consumer_secret     => $config{consumer_secret},
+        access_token        => $config{access_token},
+        access_token_secret => $config{access_token_secret},
+        ssl                 => 1,
+    );
 }
 
 # print header
 if (!$silent) {
     print "quote.pl\n" .
           "v$VERSION\n\n";
-    if ($development != 1) {
-        print "development mode is off\n\n";
+    if ($twitter && $testing_mode == 1) {  # if testing_mode is not on
+        print "testing mode is on\n" .
+              "account: $config{'account'}\n\n";
         sleep 5;
     }
 }
@@ -275,18 +295,6 @@ MAIN: while (1) {
 
     # twitter
     if ($twitter) {
-        # check for twitter settings
-        if ($consumer_key eq '' || $consumer_secret eq '' || $access_token eq '' || $access_token_secret eq '') {
-            logger('fatal', "twitter oauth credentials are not complete") and die "twitter oauth credentials are not complete\n";
-        }
-        # instantiate object
-        my $twitter = Net::Twitter::Lite::WithAPIv1_1->new(
-            consumer_key        => "$consumer_key",
-            consumer_secret     => "$consumer_secret",
-            access_token        => "$access_token",
-            access_token_secret => "$access_token_secret",
-            ssl                 => 1,
-        );
         logger('info', "posting to twitter");
         if (!$silent) {
             print "posting to twitter\n\n";
@@ -349,4 +357,3 @@ sub get_catalog {
         logger('warn', "unable to delete catalog archive: $!");
     }
 }
-
