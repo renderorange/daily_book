@@ -12,8 +12,6 @@ use File::Slurper 'read_lines';
 use LWP::Simple;
 use Net::Twitter::Lite::WithAPIv1_1;
 
-my $VERSION = '0.1.5';
-
 
 ### pre-processing
 # get commandline options
@@ -67,8 +65,7 @@ if ($twitter) {
 
 # print header
 if (!$silent) {
-    print "quote.pl\n" .
-          "v$VERSION\n\n";
+    print "quote.pl\n\n" .
     if ($twitter && $testing_mode == 1) {  # if testing_mode is not on
         print "testing mode is on\n" .
               "account: $config{'account'}\n\n";
