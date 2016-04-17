@@ -297,7 +297,7 @@ sub print_help {
           "\t-t|--twitter\t\tpost the quote to twitter\n\n" .
           "\t-s|--silent\t\twont display any output (requires -t)\n\n" .
           "\t-m|--manual 1234\tmanually specify the book number\n" .
-          "\t\t\tskips the catalog and fetchs straight from gutenberg"
+          "\t\t\t\tthen fetch straight from gutenberg\n\n" .
           "\t-h|--help\t\tdisplays this dialogue\n\n" .
           "\n";
 }
