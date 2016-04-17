@@ -83,6 +83,12 @@ $ cat quote.log
 
 ## caveats
 
+in progress: trying to get git-lfs to work for github.  in the meantime, the catalog isn't stored here, so you'll just have to manually download it into the pwd as quote.pl
+
+```
+~/dev/projects/daily_book (master *) $ wget https://share.renderorange.com/daily_book/catalog.rdf
+```
+
 when quote.pl was originally created, gutenberg's preferred method of accessing their site in an automated way, was to get a listing through their catalog.
 
 gutenberg would update their catalog once a week with the new books, and quote.pl would go fetch it.  however, gutenberg has since stopped updating their catalog, and have since removed it from their site.
