@@ -44,7 +44,7 @@ if ($twitter) {
     }
     # load and verify config from rc file
     open (my $config_fh, "<", "$rc") or print "unable to open book txt: $!\n\n" and exit 1;
-        while (<$config_fh>) {  # [TODO] the verification below could stand to be more specific, verifying values as well
+        while (<$config_fh>) {   # [TODO] the verification below could stand to be more specific, verifying values as well
             if (/^#/) { next; }  # filter out comments
             my ($key, $value) = split (/:/);  # [TODO] add trim of whitespace, run through map on $_, through the split list
             # verify config contains what's expected
@@ -138,10 +138,10 @@ MAIN: while (1) {
 
     while (<$raw_fh>) {
         # gutenberg formats their ebooks with section markers
-        # and since each section contains different kinds  of information which we want
+        # and since each section contains different kinds of information which we want
         # as we read the book by line, we track the markers based on the section of the book we're at
         if ($_body == 0 && $_foot == 0) {  # we'll only match this inside the head
-            $_head = 1;                      # or at the very start of the book
+            $_head = 1;                    # or at the very start of the book
         }
         # check for ratelimiting
         if (/You have used Project Gutenberg quite a lot today or clicked through it really fast/) {
@@ -294,7 +294,7 @@ MAIN: while (1) {
         last;
     }
 
-}  # main while loop 
+}  # end main while loop 
 
 
 ### subs
