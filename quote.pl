@@ -65,7 +65,7 @@ if ($twitter) {
 
 # print header
 if (!$silent) {
-    print "quote.pl\n\n" .
+    print "quote.pl\n\n";
     if ($twitter && $testing_mode == 1) {  # if testing_mode is not on
         print "testing mode is on\n" .
               "account: $config{'account'}\n\n";
@@ -234,23 +234,11 @@ MAIN: while (1) {
     # process through paragraphs, filtering out undesired strings, finding proper length
     my $quote;
     foreach (@paragraphs) {
-        if (! defined $_) {  # shouldn't have to do this, change it later
+        if (! defined $_) {  # [TODO] shouldn't have to do this, rework to be less workaround'y
             next;
-    #    } elsif ($_ =~ /INDEX/) {
-    #        next;
-    #    } elsif ($_ =~ /Page [\d]/) {
-    #        next;
-    #    } elsif ($_ =~ /©/) {
-    #        next; 
-    #    } elsif (/\[ILLUSTRATION\:/) {
-    #        next;
-    #    } elsif ($_ =~ /End of the Project Gutenberg EBook/) {
-    #        next;
-    #    } elsif ($_ =~ /^[\[]/) {  # paragraph starts with [, example being 6388
-    #        next;
-        } elsif ($_ =~ /[:\;] $/) {  # paragraph ends with semicolon (due to formatting issue from earlier in the script)
+        } elsif ($_ =~ /[:\;] $/) {  # paragraph ends with semicolon, due to formatting issue from earlier in the script
             next;
-        } elsif ($_ !~ /^["]/) {  # only take lines that start with a quote (this has yielded the best results against false positive, knowlingly missing a lot of good quotes)
+        } elsif ($_ !~ /^["]/) {  # only take lines that start with a quote, this has yielded the best results against bad results, at the expense of less available quotes.
             next;
         } elsif ($_ !~ /["] $/) {  # if doesn't end with a quote
             next;
