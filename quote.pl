@@ -85,7 +85,7 @@ if (! -e "$catalog") {
 }
 
 # get the info from the catalog
-open (my $catalog_fh, "<", "$catalog") or logger('fatal', "cannot open catalog: $!") and die "cannot open catalog: $!";
+open (my $catalog_fh, "<", "$catalog") or logger('fatal', "cannot open catalog: $!") and print "cannot open catalog: $!\n\n" and exit 1;
     # read and parse for book text links
     my @files;
     while (<$catalog_fh>) {
@@ -121,12 +121,12 @@ MAIN: while (1) {
     my $rc = getstore("http://$book_link", "$file");
     if (is_error($rc)) {
         logger('fatal', "there was an error downloading the book: $rc");
-        die "there was an error downloading the book: $rc";
+        print "there was an error downloading the book: $rc\n\n";
+        exit 1;
     }
 
-
     # open the book, cleanup, and store
-    open (my $raw_fh, "<:encoding(UTF-8)", "$file") or logger('fatal', "unable to open book txt: $!") and die "unable to open book txt: $!";
+    open (my $raw_fh, "<:encoding(UTF-8)", "$file") or logger('fatal', "unable to open book txt: $!") and print "unable to open book txt: $!\n\n" and exit 1;
 
     # read, format, and store
     my ($title, $author);
@@ -144,7 +144,8 @@ MAIN: while (1) {
             close ($raw_fh);
             unlink("$file");
             if ($manual) {
-                die "we've been ratelimited, they're on to us!\n\n";
+                print "we've been ratelimited, they're on to us!\n\n";
+                exit 1;
             }
             $sleep = 900;  # set the rest of the sleeps to 900
             sleep $sleep;
@@ -155,7 +156,8 @@ MAIN: while (1) {
             close ($raw_fh);
             unlink("$file");
             if ($manual) {
-                die "ebook is The New McGuffey Reader\n\n";
+                print "ebook is The New McGuffey Reader\n\n";
+                exit 1;
             }
             sleep $sleep;
             next MAIN;
@@ -166,7 +168,8 @@ MAIN: while (1) {
                 close ($raw_fh);
                 unlink("$file");
                 if ($manual) {
-                    die "ebook isn't in English\n\n";
+                    print "ebook isn't in English\n\n";
+                    exit 1;
                 }
                 sleep $sleep;
                 next MAIN;
@@ -263,7 +266,8 @@ MAIN: while (1) {
     if (!$quote) {
         logger('info', "no quote found - $file");
         if ($manual) {
-            die "no quote found\n\n";
+            print "no quote found\n\n";
+            exit 1;
         }
         sleep $sleep;
         next;
