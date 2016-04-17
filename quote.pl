@@ -60,10 +60,10 @@ if ($twitter) {
 
     # instantiate twitter object for API access
     $twitter_object = Net::Twitter::Lite::WithAPIv1_1->new(
-        consumer_key        => $config{consumer_key},
-        consumer_secret     => $config{consumer_secret},
-        access_token        => $config{access_token},
-        access_token_secret => $config{access_token_secret},
+        consumer_key        => "$config{consumer_key}",
+        consumer_secret     => "$config{consumer_secret}",
+        access_token        => "$config{access_token}",
+        access_token_secret => "$config{access_token_secret}",
         ssl                 => 1,
     );
 }
@@ -73,10 +73,15 @@ if (!$silent) {
     print "quote.pl\n\n";
     if ($twitter && $testing_mode) {
         print "testing mode is on\n" .
-              "account: $config{'account'}\n\n";
+              "account: $config{'account'}\n";
         sleep 5;
     }
+    if (!$manual) {
+        print "finding a quote, this may take some time\n" .
+              "quote.log, located in the pwd, has more information\n";
+    }
 }
+exit;
 
 # check if catalog exists
 my $catalog = 'catalog.rdf';
@@ -282,7 +287,7 @@ MAIN: while (1) {
         if (!$silent) {
             print "posting to twitter\n\n";
         }
-        eval { $twitter->update("$quote$page_link") };
+        eval { $twitter_object->update("$quote$page_link") };
         if ( $@ ) {
             logger('warn', "post failed: $@");
             if (!$silent) {
