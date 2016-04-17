@@ -31,7 +31,7 @@ my %config;
 my $twitter_object;
 
 # testing mode                                 # with testing mode set to 1, quote.pl will load a different rc file
-my $testing_mode = 1;                          # this is meant to test post to a twitter account without followers
+my $testing_mode = 0;                          # this is meant to test post to a twitter account without followers
 if ($testing_mode) { $rc = '.quote.rc.dev'; }  # hard coding it here is a failsafe for me, as opposed to running from commandline
 
 # if we're using twitter
@@ -46,7 +46,8 @@ if ($twitter) {
     open (my $config_fh, "<", "$rc") or print "unable to open book txt: $!\n\n" and exit 1;
         while (<$config_fh>) {   # [TODO] the verification below could stand to be more specific, verifying values as well
             if (/^#/) { next; }  # filter out comments
-            my ($key, $value) = split (/:/);  # [TODO] add trim of whitespace, run through map on $_, through the split list
+            my ($key, $value) = split (/:/);  # [TODO] add trim of whitespace, run through map on $_, through the split list, also add chomp to it too
+            chomp ($value);
             # verify config contains what's expected
             if ($key !~ /^account$|^consumer_key$|^consumer_secret$|^access_token$|^access_token_secret$/) {
                 print "$rc doesn't appear to contain what's needed\n" .
@@ -73,15 +74,14 @@ if (!$silent) {
     print "quote.pl\n\n";
     if ($twitter && $testing_mode) {
         print "testing mode is on\n" .
-              "account: $config{'account'}\n";
+              "account: $config{'account'}\n\n";
         sleep 5;
     }
     if (!$manual) {
         print "finding a quote, this may take some time\n" .
-              "quote.log, located in the pwd, has more information\n";
+              "for more information, please see quote.log\n\n";
     }
 }
-exit;
 
 # check if catalog exists
 my $catalog = 'catalog.rdf';
