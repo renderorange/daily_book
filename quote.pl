@@ -293,11 +293,9 @@ MAIN: while (1) {
 sub print_help {
     print "usage: ./quote.pl -s -t\n\n" .
           "options:\n" .
-          "\t-s|--silent\t\twont display any output (requires -t)\n\n" .
           "\t-t|--twitter\t\tpost the quote to twitter\n\n" .
-          "\t-m|--manual 1234\tmanually specify the book number\n" .
-          "\t\t\t\tmanual mode is intended to be run for debugging purposes only\n" .
-          "\t\t\t\tand expects the ebook stored locally in the pwd - pg37104.txt.utf8\n\n" .
+          "\t-s|--silent\t\twont display any output (requires -t)\n\n" .
+          "\t-m|--manual 1234\tmanually specify the book number\n\n" .
           "\t-h|--help\t\tdisplays this dialogue\n\n" .
           "\n";
 }
