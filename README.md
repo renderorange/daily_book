@@ -4,7 +4,7 @@ get quotes from free ebooks for your friends.
 
 ## description
 
-quote.pl is a perl script which searches free ebooks at [project gutenberg][gutenberg] for an english formatted quote, which fit inside 140 characters, then tweets it.
+quote.pl is a perl script which searches free ebooks at [project gutenberg][gutenberg] for an english formatted quote, which fits inside 140 characters, then tweets it.
 
 ## setup
 
@@ -83,7 +83,7 @@ $ cat quote.log
 
 ## caveats
 
-in progress: trying to get git-lfs to work for github.  in the meantime, the catalog isn't stored here, so you'll just have to manually download it into the pwd as quote.pl
+in progress: trying to get git-lfs to work for github.  in the meantime, the catalog isn't stored here, so you'll just have to manually download it into the same directory as quote.pl
 
 ```
 ~/dev/projects/daily_book (master *) $ wget https://share.renderorange.com/daily_book/catalog.rdf
