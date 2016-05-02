@@ -43,7 +43,7 @@ if ($twitter) {
         exit 1;
     }
     # load and verify config from rc file
-    open (my $config_fh, "<", "$rc") or print "unable to open book txt: $!\n\n" and exit 1;
+    open (my $config_fh, "<", "$rc") or print "unable to open $rc: $!\n\n" and exit 1;
         while (<$config_fh>) {   # [TODO] the verification below could stand to be more specific, verifying values as well
             if (/^#/) { next; }  # filter out comments
             my ($key, $value) = split (/:/);  # [TODO] add trim of whitespace, run through map on $_, through the split list, also add chomp to it too
