@@ -25,7 +25,6 @@ if ($silent && !$twitter || $manual && $silent || $help) {  # these options don'
 }
 
 # variables and settings
-my $sleep = 61;
 my $rc = '.quote.rc';
 my %config;
 my $twitter_object;
@@ -108,6 +107,7 @@ close ("$catalog_fh");
 ### begin processing
 # loop here, since a book isn't guaranteed to find a quote each time
 my ($number, $file);
+my $sleep = 61;
 MAIN: while (1) {
 
     if (!$manual) {  # [TODO] should flip this logic around, if ($manual)
@@ -270,13 +270,13 @@ MAIN: while (1) {
         logger('info', "no quote found - $file");
         if ($manual) {
             print "no quote found\n\n";
-            exit 1;
+            exit 1;  # exit here, since manual mode wont go through the catalog to find book numbers
         }
-        sleep $sleep;
-        next;
+        sleep $sleep;  # wait for 61 seconds to not trigger the ratelimiting
+        next;          # back to the top of the loop to try another ebook
     }
 
-    # print out verbose output
+    # print out verbose output, since a book was found
     if (!$silent) {
         print "title: $title\n" .
               "author: $author\n" .
@@ -285,7 +285,7 @@ MAIN: while (1) {
               "\n";
     }
 
-    # twitter
+    # post it to twitter
     if ($twitter) {
         logger('info', "posting to twitter");
         if (!$silent) {
