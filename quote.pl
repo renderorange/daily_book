@@ -122,8 +122,8 @@ MAIN: while (1) {
 
     $number =~ s/\.txt\.utf8//;
     $number =~ s/pg//;
-    my $page_link = "gutenberg.org/ebooks/$number";
-    my $book_link = "gutenberg.org/cache/epub/$number/$file";
+    my $page_link = "www.gutenberg.org/ebooks/$number";
+    my $book_link = "www.gutenberg.org/cache/epub/$number/$file";
 
     # download the ebook
     my $rc = getstore("http://$book_link", "$file");
