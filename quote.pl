@@ -30,7 +30,7 @@ my %config;
 my $twitter_object;
 
 # testing mode                                 # with testing mode set to 1, quote.pl will load a different rc file
-my $testing_mode = 1;                          # this is meant to test post to a twitter account without followers
+my $testing_mode = 0;                          # this is meant to test post to a twitter account without followers
 if ($testing_mode) { $rc = '.quote.rc.dev'; }  # hard coding it here is a failsafe for me, as opposed to running from commandline
 
 # if we're using twitter
@@ -132,10 +132,13 @@ MAIN: while (1) {
 
     # download the ebook
     my $rc = getstore("http://$book_link", "$file");
-    if (is_error($rc)) {
-        logger('fatal', "there was an error downloading the book: $rc");
-        print "there was an error downloading the book: $rc\n\n";
+    if ($manual && is_error($rc)) {
+        logger('warn', "error: $rc while downloading - $file");
+        print "error: $rc while downloading - $file\n\n";
         exit 1;
+    } elsif (is_error($rc)) {
+        logger('warn', "error: $rc while downloading - $file");
+        next;
     }
 
     # open the book, cleanup, and store
