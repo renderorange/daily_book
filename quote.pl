@@ -30,7 +30,7 @@ my %config;
 my $twitter_object;
 
 # testing mode                                 # with testing mode set to 1, quote.pl will load a different rc file
-my $testing_mode = 0;                          # this is meant to test post to a twitter account without followers
+my $testing_mode = 1;                          # this is meant to test post to a twitter account without followers
 if ($testing_mode) { $rc = '.quote.rc.dev'; }  # hard coding it here is a failsafe for me, as opposed to running from commandline
 
 # if we're using twitter
@@ -107,7 +107,6 @@ close ("$catalog_fh");
 ### begin processing
 # loop here, since a book isn't guaranteed to find a quote each time
 my ($number, $file);
-my $sleep = 61;
 MAIN: while (1) {
 
     if (!$manual) {  # [TODO] should flip this logic around, if ($manual)
@@ -123,7 +122,13 @@ MAIN: while (1) {
     $number =~ s/\.txt\.utf8//;
     $number =~ s/pg//;
     my $page_link = "www.gutenberg.org/ebooks/$number";
-    my $book_link = "www.gutenberg.org/cache/epub/$number/$file";
+
+    # build the book link
+    my $book_link = "gutenberg.pglaf.org";  # downloading from the mirror
+    for (0..(length($number)-1)-1) {  # because 0 is the first member of substring
+        $book_link .= "/" . substr($number, $_, 1);
+    }
+    $book_link .= "/$number/$number.txt";
 
     # download the ebook
     my $rc = getstore("http://$book_link", "$file");
@@ -157,11 +162,8 @@ MAIN: while (1) {
                 print "we've been ratelimited, they're on to us!\n\n";
                 exit 1;
             }
-            $sleep = 900;  # set the rest of the sleeps to 900 (probably a bit larger than needed)
-            logger('info', "setting sleep to 900 secs between books");
-            sleep $sleep;  # gotta give them time to cool off, they might forget we're here
-            next MAIN;     # the sleep values came about after a lot of trying to figure out their ratelimiting system.
-        }                  # 61 and 900 seemed to be work consistently as I was testing, so I just left them there.
+            next MAIN;
+        }
         # [TODO] create logic here for skipping these checks, unless in head
         if (/The New McGuffey/) {
             logger('info', "ebook is The New McGuffey Reader - $file");
@@ -171,7 +173,6 @@ MAIN: while (1) {
                 print "ebook is The New McGuffey Reader\n\n";
                 exit 1;
             }
-            sleep $sleep;
             next MAIN;  # The New McGuffey Reader failed the most in testing, so I just skip it altogether.
         }
         if (/Language: /) {
@@ -183,7 +184,6 @@ MAIN: while (1) {
                     print "ebook isn't in English\n\n";
                     exit 1;
                 }
-                sleep $sleep;
                 next MAIN;  # [DID YOU KNOW] sometimes ebooks are labeled English, but read creole ¯\_(ツ)_/¯
             }
         }
@@ -272,8 +272,7 @@ MAIN: while (1) {
             print "no quote found\n\n";
             exit 1;  # exit here, since manual mode wont go through the catalog to find book numbers
         }
-        sleep $sleep;  # wait for 61 seconds to not trigger the ratelimiting
-        next;          # back to the top of the loop to try another ebook
+        next;        # back to the top of the loop to try another ebook
     }
 
     # print out verbose output, since a book was found
