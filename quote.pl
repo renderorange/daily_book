@@ -153,17 +153,6 @@ MAIN: while (1) {
         if ($_body == 0 && $_foot == 0) {  # we'll only match this inside the head
             $_head = 1;                    # or at the very start of the book
         }
-        # check for ratelimiting
-        if (/You have used Project Gutenberg quite a lot today or clicked through it really fast/) {
-            logger('warn', "we've been ratelimited; they're on to us!");
-            close ($raw_fh);
-            unlink("$file");
-            if ($manual) {
-                print "we've been ratelimited, they're on to us!\n\n";
-                exit 1;
-            }
-            next MAIN;
-        }
         # [TODO] create logic here for skipping these checks, unless in head
         if (/The New McGuffey/) {
             logger('info', "ebook is The New McGuffey Reader - $file");
