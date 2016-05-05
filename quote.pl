@@ -94,11 +94,10 @@ if (! -e "$index") {
 # [TODO] the usage of chained ands may be creating too much dependency on loggers success, before print and exit. it could be an issue. should be redone
 open (my $index_fh, "<", "$index") or logger('fatal', "cannot open index: $!") and print "cannot open index: $!\n\n" and exit 1;
     # read and parse for book text links
-    my @files;
+    my @numbers;
     while (<$index_fh>) {
-        if ($_ =~ m/(pg[\d]+\.txt\.utf8)/) {  # match the pg naming convention
-            push (@files, $1);
-        }
+        chomp;
+        push (@numbers, $_);
     }
 # close the catalog
 close ("$index_fh");
@@ -109,18 +108,13 @@ close ("$index_fh");
 my ($number, $file);
 MAIN: while (1) {
 
-    if (!$manual) {  # [TODO] should flip this logic around, if ($manual)
-        # grab random book number and build the link
-        $file = @files[rand @files];
-        $number = $file;
-    } else {
-        # build the links manually
-        $file = "pg$manual.txt.utf8";
+    if ($manual) {
         $number = $manual;
+    } else {
+        $number = @numbers[rand @numbers];  # grab random entry from index
     }
+    $file = "$number.txt";
 
-    $number =~ s/\.txt\.utf8//;
-    $number =~ s/pg//;
     my $page_link = "www.gutenberg.org/ebooks/$number";
 
     # build the book link
