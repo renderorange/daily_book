@@ -125,7 +125,7 @@ MAIN: while (1) {
 
     # build the book link
     my $book_link = "gutenberg.pglaf.org";  # downloading from the mirror
-    for (0..(length($number)-1)-1) {  # because 0 is the first member of substring
+    for (0..(length($number)-2)) {  # because 0 is the first member of substring
         $book_link .= "/" . substr($number, $_, 1);
     }
     $book_link .= "/$number/$number.txt";
