@@ -30,7 +30,7 @@ my %config;
 my $twitter_object;
 
 # testing mode                                 # with testing mode set to 1, quote.pl will load a different rc file
-my $testing_mode = 0;                          # this is meant to test post to a twitter account without followers
+my $testing_mode = 1;                          # this is meant to test post to a twitter account without followers
 if ($testing_mode) { $rc = '.quote.rc.dev'; }  # hard coding it here is a failsafe for me, as opposed to running from commandline
 
 # if we're using twitter
@@ -77,31 +77,31 @@ if (!$silent) {
         sleep 5;
     }
     if (!$manual) {
-        print "finding a quote, this may take some time\n" .
+        print "finding a quote, just a moment\n" .
               "for more information, please see quote.log\n\n";
     }
 }
 
-# check if catalog exists
-my $catalog = 'catalog.rdf';
-if (! -e "$catalog") {
-    print "$catalog doesn't exist\n" .
+# check if index exists
+my $index = 'index.txt';
+if (! -e "$index") {
+    print "$index doesn't exist\n" .
           "please see github.com/renderorange/daily_book for setup details\n\n";
     exit 1;
 }
 
 # get the info from the catalog
 # [TODO] the usage of chained ands may be creating too much dependency on loggers success, before print and exit. it could be an issue. should be redone
-open (my $catalog_fh, "<", "$catalog") or logger('fatal', "cannot open catalog: $!") and print "cannot open catalog: $!\n\n" and exit 1;
+open (my $index_fh, "<", "$index") or logger('fatal', "cannot open catalog: $!") and print "cannot open catalog: $!\n\n" and exit 1;
     # read and parse for book text links
     my @files;
-    while (<$catalog_fh>) {
+    while (<$index_fh>) {
         if ($_ =~ m/(pg[\d]+\.txt\.utf8)/) {  # match the pg naming convention
             push (@files, $1);
         }
     }
 # close the catalog
-close ("$catalog_fh");
+close ("$index_fh");
 
 
 ### begin processing
