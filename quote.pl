@@ -42,7 +42,8 @@ if ($twitter) {
         exit 1;
     }
     # load and verify config from rc file
-    open (my $config_fh, "<", "$rc") or print "unable to open $rc: $!\n\n" and exit 1;
+    open (my $config_fh, "<", "$rc")
+        or print "unable to open $rc: $!\n\n" and exit 1;
         while (<$config_fh>) {   # [TODO] the verification below could stand to be more specific, verifying values as well
             if (/^#/) { next; }  # filter out comments
             my ($key, $value) = split (/:/);  # [TODO] add trim of whitespace, run through map on $_, through the split list, also add chomp to it too
@@ -90,9 +91,10 @@ if (! -e "$index") {
     exit 1;
 }
 
-# get the info from the catalog
+# get the info from the index
 # [TODO] the usage of chained ands may be creating too much dependency on loggers success, before print and exit. it could be an issue. should be redone
-open (my $index_fh, "<", "$index") or logger('fatal', "cannot open index: $!") and print "cannot open index: $!\n\n" and exit 1;
+open (my $index_fh, "<", "$index")
+    or logger('fatal', "cannot open index: $!") and print "cannot open index: $!\n\n" and exit 1;
     # read and parse for book text links
     my @numbers;
     while (<$index_fh>) {
@@ -140,7 +142,8 @@ MAIN: while (1) {
     }
 
     # open the book, cleanup, and store
-    open (my $raw_fh, "<:encoding(UTF-8)", "$file") or logger('fatal', "unable to open book txt: $!") and print "unable to open book txt: $!\n\n" and exit 1;
+    open (my $raw_fh, "<:encoding(UTF-8)", "$file")
+        or logger('fatal', "unable to open book txt: $!") and print "unable to open book txt: $!\n\n" and exit 1;
 
     # read, format, and store
     my ($title, $author);
