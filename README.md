@@ -21,7 +21,7 @@ you'll also need to install libssl-dev for Twitter.
 ```
 # apt-get install libssl-dev
 ```
-then, through cpanm (through the unpriv'd user)
+then, through cpanm (through the unpriv'd user, if local::lib)
 ```
 $ cpanm LWP::Simple
 $ cpanm Net::Twitter::Lite::WithAPIv1_1
