@@ -8,7 +8,28 @@ quote.pl is a perl script which searches free ebooks at [project gutenberg][gute
 
 ## setup
 
-to post to twitter, you'll need to create oauth credentials at [https://apps.twitter.com][twitter]
+to run quote.pl, you'll first need to install a few perl modules.
+
+I personally like local::lib and cpanminus, but to each their own.
+quote.pl is wired to use local::lib, so it doesn't require root installation of the modules.
+
+to build the modules with cpanminus, you will need the following system packages installed
+```
+# apt-get install make gcc
+```
+you'll also need to install libssl-dev for Twitter.
+```
+# apt-get install libssl-dev
+```
+then, through cpanm (through the unpriv'd user)
+```
+$ cpanm LWP::Simple
+$ cpanm Net::Twitter::Lite::WithAPIv1_1
+$ cpanm Net::OAuth
+```
+
+quote.pl has optional functonality to post to twitter
+to use it, you'll need to create oauth credentials at [https://apps.twitter.com][twitter]
 
 quote.pl will look for those credentials in a file named .quote.rc, inside the pwd
 
