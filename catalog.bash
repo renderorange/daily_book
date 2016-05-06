@@ -3,7 +3,6 @@
 # catalog.bash
 # download and process the catalog files from gutenberg.org's pglaf mirror
 
-
 # functions
 function error_and_exit {
     echo 'error' && exit 1
