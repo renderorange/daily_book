@@ -30,13 +30,13 @@ echo -n 'removing tar - '
 RM=$(rm -f rdf-files.tar)
 if [ $? == 1 ]; then warn; else echo 'done'; fi
 
-# gather the names
-echo -n 'gathering the names - '
+# building the index
+echo -n 'building the index - '
 grep txt cache/epub/*/* | egrep -v "utf-8|-" | cut -d'/' -f3 > index.txt.new
 echo 'done'
 
 # rename new to old
-echo -n 'renaming and removing the old index - '
+echo -n 'renaming new and removing the old index - '
 mv index.txt.new index.txt
 echo 'done'
 
