@@ -30,7 +30,7 @@ my %config;
 my $twitter_object;
 
 # testing mode                                 # with testing mode set to 1, quote.pl will load a different rc file
-my $testing_mode = 1;                          # this is meant to test post to a twitter account without followers
+my $testing_mode = 0;                          # this is meant to test post to a twitter account without followers
 if ($testing_mode) { $rc = '.quote.rc.dev'; }  # hard coding it here is a failsafe for me, as opposed to running from commandline
 
 # if we're using twitter
