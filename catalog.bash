@@ -14,23 +14,37 @@ function warn {
 }
 
 # download the new archive
-wget 'gutenberg.pglaf.org/cache/epub/feeds/rdf-files.tar.bz2' || error_and_exit
+echo -n 'downloading new archive - '
+WGET=$(wget --quiet 'gutenberg.pglaf.org/cache/epub/feeds/rdf-files.tar.bz2')
+if [ $? == 1 ]; then error_and_exit; else echo 'done'; fi
 
 # unpack
-bunzip2 rdf-files.tar.bz2 || error_and_exit
-tar xvf rdf-files.tar || error_and_exit
+echo -n 'unpacking the archive - '
+BUNZIP2=$(bunzip2 rdf-files.tar.bz2)
+if [ $? == 1 ]; then error_and_exit; else echo 'done'; fi
+echo -n "untar'ing - "
+UNTAR=$(tar xf rdf-files.tar)
+if [ $? == 1 ]; then error_and_exit; else echo 'done'; fi
 
 # remove tar
-rm -f rdf-files.tar || warn
+echo -n 'removing tar - '
+RM=$(rm -f rdf-files.tar)
+if [ $? == 1 ]; then warn; else echo 'done'; fi
 
 # gather the names
+echo -n 'gathering the names - '
 grep txt cache/epub/*/* | egrep -v "utf-8|-" | cut -d'/' -f3 > index.txt.new
+echo 'done'
 
 # rename new to old
+echo -n 'renaming and removing the old index - '
 mv index.txt.new index.txt
+echo 'done'
 
 # rock the cache-ba
-rm -rf cache || warn
+echo -n 'removing the old cache - '
+RM_CACHE=$(rm -rf cache)
+if [ $? == 1 ]; then warn; else echo 'done'; fi
 
 # you made it!
 echo 'all done' && exit 0
