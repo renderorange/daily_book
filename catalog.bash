@@ -12,10 +12,6 @@ function warn {
     echo 'error'
 }
 
-function convert_to_epoch {
-    return date -d "$1" +%s
-}
-
 # compared the timestamps
 if [ -f catalog.txt ]; then  # first check if the catalog exists locally, otherwise just download it
     echo -n 'checking timestamp on server - '
