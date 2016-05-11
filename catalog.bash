@@ -12,18 +12,32 @@ function warn {
     echo 'error'
 }
 
-# check timestamp on server
-echo -n 'checking timestamp on server - '
-NEW_TIMESTAMP=$(curl -s gutenberg.pglaf.org/cache/epub/feeds/ | grep rdf-files.tar.bz2 | egrep -oh '[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}')
-if [ $? == 1 ]; then error; else echo 'done'; fi
+function convert_to_epoch {
+    return date -d "$1" +%s
+}
 
-echo -n 'comparing timestamp to current index - '
-OLD_TIMESTAMP=$(stat -c %y index.txt|awk -F':' '{print $1":"$2}')
-if [ $? == 1 ]; then error; else echo 'done'; fi
+# compared the timestamps
+if [ -f catalog.txt ]; then  # first check if the catalog exists locally, otherwise just download it
+    echo -n 'checking timestamp on server - '
+    NEW_TIMESTAMP=$(curl -s gutenberg.pglaf.org/cache/epub/feeds/ | grep rdf-files.tar.bz2 | egrep -oh '[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}')
+    if [ $? == 1 ]; then error_and_exit; else echo 'done'; fi  # exit here if there was an issue connecting
 
-# DEBUG
-echo "NEW: $NEW_TIMESTAMP OLD: $OLD_TIMESTAMP"
-exit
+    echo -n 'checking timestamp on stored catalog - '
+    OLD_TIMESTAMP=$(stat -c %y catalog.txt|awk -F':' '{print $1":"$2}')
+    if [ $? == 1 ]; then warn; else echo 'done'; fi
+
+    echo -n 'comparing timestamps - '  # admittedly, this loses about 30 seconds of accuracy in testing
+    NEW_EPOCH=$(date -d "$NEW_TIMESTAMP" +%s)  # but the margin of error wasn't enough to pose an issue
+    OLD_EPOCH=$(date -d "$OLD_TIMESTAMP" +%s)  # although possiblity of closeness is still there
+
+    if [ $NEW_EPOCH -lt $OLD_EPOCH ]; then
+        echo "up to date" && exit 0
+    else
+        echo "done"
+    fi
+fi
+
+# if [ $OLD_EPOCH -gt $NEW_EPOCH ]; then echo "up to date"; else echo "done"; fi
 
 # download the new archive
 echo -n 'downloading new archive - '
@@ -43,14 +57,14 @@ echo -n 'removing tar - '
 RM=$(rm -f rdf-files.tar)
 if [ $? == 1 ]; then warn; else echo 'done'; fi
 
-# building the index
-echo -n 'building the index - '
-grep txt cache/epub/*/* | egrep -v "utf-8|-" | cut -d'/' -f3 > index.txt.new
+# building the catalog
+echo -n 'building the catalog - '
+grep txt cache/epub/*/* | egrep -v "utf-8|-" | cut -d'/' -f3 > catalog.txt.new
 echo 'done'
 
 # rename new to old
-echo -n 'renaming new and removing the old index - '
-mv index.txt.new index.txt
+echo -n 'renaming new and removing the old catalog - '
+mv catalog.txt.new catalog.txt
 echo 'done'
 
 # rock the cache-ba

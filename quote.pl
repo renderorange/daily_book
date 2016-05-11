@@ -83,26 +83,26 @@ if (!$silent) {
     }
 }
 
-# check if index exists
-my $index = 'index.txt';
-if (! -e "$index") {
-    print "$index doesn't exist\n" .
+# check if catalog exists
+my $catalog = 'catalog.txt';
+if (! -e "$catalog") {
+    print "$catalog doesn't exist\n" .
           "please see github.com/renderorange/daily_book for setup details\n\n";
     exit 1;
 }
 
-# get the info from the index
+# get the info from the catalog
 # [TODO] the usage of chained ands may be creating too much dependency on loggers success, before print and exit. it could be an issue. should be redone
-open (my $index_fh, "<", "$index")
-    or logger('fatal', "cannot open index: $!") and print "cannot open index: $!\n\n" and exit 1;
+open (my $catalog_fh, "<", "$catalog")
+    or logger('fatal', "cannot open catalog: $!") and print "cannot open catalog: $!\n\n" and exit 1;
     # read and parse for book text links
     my @numbers;
-    while (<$index_fh>) {
+    while (<$catalog_fh>) {
         chomp;
         push (@numbers, $_);
     }
 # close the catalog
-close ("$index_fh");
+close ("$catalog_fh");
 
 
 ### begin processing
@@ -113,7 +113,7 @@ MAIN: while (1) {
     if ($manual) {
         $number = $manual;
     } else {
-        $number = @numbers[rand @numbers];  # grab random entry from index
+        $number = @numbers[rand @numbers];  # grab random entry from catalog
     }
     $file = "$number.txt";
 
