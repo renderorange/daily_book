@@ -33,8 +33,6 @@ if [ -f catalog.txt ]; then  # first check if the catalog exists locally, otherw
     fi
 fi
 
-# if [ $OLD_EPOCH -gt $NEW_EPOCH ]; then echo "up to date"; else echo "done"; fi
-
 # download the new archive
 echo -n 'downloading new archive - '
 WGET=$(wget --quiet 'gutenberg.pglaf.org/cache/epub/feeds/rdf-files.tar.bz2')
