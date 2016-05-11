@@ -12,6 +12,19 @@ function warn {
     echo 'error'
 }
 
+# check timestamp on server
+echo -n 'checking timestamp on server - '
+NEW_TIMESTAMP=$(curl -s gutenberg.pglaf.org/cache/epub/feeds/ | grep rdf-files.tar.bz2 | egrep -oh '[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}')
+if [ $? == 1 ]; then error; else echo 'done'; fi
+
+echo -n 'comparing timestamp to current index - '
+OLD_TIMESTAMP=$(stat -c %y index.txt|awk -F':' '{print $1":"$2}')
+if [ $? == 1 ]; then error; else echo 'done'; fi
+
+# DEBUG
+echo "NEW: $NEW_TIMESTAMP OLD: $OLD_TIMESTAMP"
+exit
+
 # download the new archive
 echo -n 'downloading new archive - '
 WGET=$(wget --quiet 'gutenberg.pglaf.org/cache/epub/feeds/rdf-files.tar.bz2')
