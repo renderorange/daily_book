@@ -94,6 +94,47 @@ $ cat quote.log
 [05052016.210324] [info] posting to twitter
 ```
 
+## the catalog
+
+quote.pl utilizes an index of book numbers to know which are "good" before trying to download from the mirror.  This repo itself contains an older version (2 months old, at the time of this edit), but also contains a script to create a new up-to-date index.
+
+catalog.bash checks the timestamp of the archive of rdf files (the catalog of all books) on the gutenberg's mirror, compares it to the local index, and if need, downloads, extracts, and creates a new index file of the book numbers.  catalog.bash then removes the old index and cleans up after itself.
+
+the script can be run manually, in this case, showing the local index is newer than the archive on the mirror; it then exits cleanly.
+
+```
+$ bash catalog.bash 
+checking timestamp on server - done
+checking timestamp on stored catalog - done
+comparing timestamps - up to date
+```
+
+in this case, catalog.bash sees it needs to get the new one, so proceeds to go through with its work.
+
+```
+$ bash catalog.bash 
+checking timestamp on server - done
+checking timestamp on stored catalog - done
+comparing timestamps - done
+downloading new archive - done
+unpacking the archive - done
+untar'ing - done
+removing tar - done
+building the catalog - done
+renaming new and removing the old catalog - done
+removing the old cache - done
+all done
+```
+
+the original intention of the catalog.bash script (as well as quote.pl) was to run automated.
+this can be done with a simple crontab entry.
+
+```
+$ crontab -l
+0 3 * * * cd /home/blaine/dev/projects/daily_book/; bash catalog.bash
+30 12 * * * cd /home/blaine/dev/projects/daily_book/; perl quote.pl -t
+```
+
 ## see it in action
 
 The final outcome, the purpose for creating this script, can be seen at [https://twitter.com/_daily_book] [daily_book].  Feel free to subscribe for some quality free book quotes, delivered right to your Twitter feed :)
