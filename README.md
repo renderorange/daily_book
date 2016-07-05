@@ -96,7 +96,7 @@ $ cat quote.log
 
 ## see it in action
 
-The final outcome, the purpose for creating this script, can be seen at [twitter.com/_daily_book] [daily_book].  Feel free to subscribe for some quality free book quotes, delivered right to your Twitter feed :)
+The final outcome, the purpose for creating this script, can be seen at [https://twitter.com/_daily_book] [daily_book].  Feel free to subscribe for some quality free book quotes, delivered right to your Twitter feed :)
 
 ## unlicense
 
