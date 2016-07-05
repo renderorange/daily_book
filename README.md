@@ -94,7 +94,7 @@ $ cat quote.log
 [05052016.210324] [info] posting to twitter
 ```
 
-## See it in action
+## see it in action
 
 The final outcome, the purpose for creating this script, can be seen at [twitter.com/_daily_book] [daily_book].  Feel free to subscribe for some quality free book quotes, delivered right to your Twitter feed :)
 
