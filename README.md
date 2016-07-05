@@ -94,6 +94,10 @@ $ cat quote.log
 [05052016.210324] [info] posting to twitter
 ```
 
+## See it in action
+
+The final outcome, the purpose for creating this script, can be seen at [twitter.com/_daily_book] [daily_book].  Feel free to subscribe for some quality free book quotes, delivered right to your Twitter feed :)
+
 ## unlicense
 
 This is free and unencumbered software released into the public domain.
@@ -123,3 +127,4 @@ For more information, please refer to <http://unlicense.org>
 
 [gutenberg]: http://www.gutenberg.org/wiki/Main_Page
 [twitter]: https://apps.twitter.com
+[daily_book]: https://twitter.com/_daily_book
