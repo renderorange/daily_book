@@ -96,11 +96,11 @@ $ cat quote.log
 
 ## the catalog
 
-quote.pl utilizes an index of book numbers to know which are "good" before trying to download from the mirror.  This repo itself contains an older version (2 months old, at the time of this edit), but also contains a script to create a new up-to-date index.
+quote.pl utilizes an index of book numbers to know which are "good" before trying to download from the mirror.  This repo contains an older version (2 months old, at the time of this edit), but also contains a script to create a new up-to-date index.
 
-catalog.bash checks the timestamp of the archive of rdf files (the catalog of all books) on the gutenberg's mirror, compares it to the local index, and if need, downloads, extracts, and creates a new index file of the book numbers.  catalog.bash then removes the old index and cleans up after itself.
+catalog.bash checks the timestamp of the archive of rdf files (the catalog of all books) on gutenberg's mirror, compares it to the local index, and if need, downloads, extracts, and creates a new index file of the book numbers.  catalog.bash then removes the old index and cleans up after itself.
 
-the script can be run manually, in this case, showing the local index is newer than the archive on the mirror; it then exits cleanly.
+the script can be run manually, in this case, showing the local index is newer than the archive on the mirror.  it then exits without download anything new.
 
 ```
 $ bash catalog.bash 
@@ -109,7 +109,7 @@ checking timestamp on stored catalog - done
 comparing timestamps - up to date
 ```
 
-in this case, catalog.bash sees it needs to get the new one, so proceeds to go through with its work.
+in this case, catalog.bash sees it needs to get the new catalog, then proceeds to go through with its work.
 
 ```
 $ bash catalog.bash 
@@ -137,7 +137,7 @@ $ crontab -l
 
 ## see it in action
 
-The final outcome, the purpose for creating this script, can be seen at [https://twitter.com/_daily_book] [daily_book].  Feel free to subscribe for some quality free book quotes, delivered right to your Twitter feed :)
+The final outcome, the purpose for creating this script, can be seen at [https://twitter.com/_daily_book] [daily_book].  Feel free to subscribe for some quality free ebook quotes, delivered right to your Twitter feed :)
 
 ## unlicense
 
