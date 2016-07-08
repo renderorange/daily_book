@@ -96,7 +96,7 @@ $ cat quote.log
 
 ## the catalog
 
-quote.pl utilizes an index of book numbers to download from the mirror.  This repo contains an older version (2 months old, at the time of this edit), but also contains a script to create a new up-to-date index.
+quote.pl utilizes an index of book numbers to download from the mirror.  This repo contains an older version, but also contains a script to create a new up-to-date index.
 
 catalog.bash checks the timestamp of the archive of rdf files (the catalog of all books) on gutenberg's mirror, compares it to the local index, and if need, downloads, extracts, and creates a new index file of the book numbers.  catalog.bash then removes the old index and cleans up after itself.
 
