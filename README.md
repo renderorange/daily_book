@@ -4,16 +4,16 @@ get quotes from free ebooks for your friends.
 
 ## description
 
-quote.pl is a perl script which searches free ebooks at [project gutenberg][gutenberg] for an english formatted quote, which fits inside 140 characters, then tweets it.
+quote.pl finds quotes in free ebooks at [project gutenberg][gutenberg] then tweets them.
 
 ## setup
 
 to run quote.pl, you'll first need to install a few perl modules.
 
-I personally like local::lib and cpanminus, but to each their own.
-quote.pl is wired to use local::lib, so it doesn't require root installation of the modules.
+I personally like local::lib and cpanminus.
+quote.pl is wired to use local::lib so it doesn't require root installation of the modules.
 
-to build the modules with cpanminus, you will need the following system packages installed
+to build the modules with cpanminus you'll need the following system packages installed
 ```
 # apt-get install make gcc
 ```
@@ -21,7 +21,7 @@ you'll also need to install libssl-dev for Twitter.
 ```
 # apt-get install libssl-dev
 ```
-then, through cpanm (through the unpriv'd user, if local::lib)
+then, through cpanm (running as your unpriv'd user, if local::lib)
 ```
 $ cpanm LWP::Simple
 $ cpanm Net::Twitter::Lite::WithAPIv1_1
@@ -29,9 +29,9 @@ $ cpanm Net::OAuth
 ```
 
 quote.pl has optional functonality to post to twitter
-to use it, you'll need to create oauth credentials at [https://apps.twitter.com][twitter]
+you'll need to create oauth credentials for quote.pl if you want to post.  you can do so at [https://apps.twitter.com][twitter]
 
-quote.pl will look for those credentials in a file named .quote.rc, inside the pwd
+quote.pl will look for the credentials in a file named .quote.rc, inside the pwd
 
 ```
 # quote.pl twitter oauth settings
@@ -59,7 +59,7 @@ options:
 	-h|--help		    displays this dialogue
 ```
 
-quote.pl can be run without any options, and will simply go out and get a quote, then show it to you.
+quote.pl can be run without any options.  it'll simply go out and get a quote, then show it to you.
 
 ```
 $ perl quote.pl
@@ -75,7 +75,7 @@ author: Lillian Elizabeth Roy
 
 ```
 
-you can also manually specify an ebook number from gutenberg's catalog, quote.pl will tell you if it couldn't find a book with that number.
+you can also manually specify an ebook number from gutenberg's catalog.  quote.pl will tell you if it couldn't find a book with that number.
 
 if you want to run the script via cron, there is also a silent mode, which won't output anything but the log file.
 
@@ -96,7 +96,7 @@ $ cat quote.log
 
 ## the catalog
 
-quote.pl utilizes an index of book numbers to know which are "good" before trying to download from the mirror.  This repo contains an older version (2 months old, at the time of this edit), but also contains a script to create a new up-to-date index.
+quote.pl utilizes an index of book numbers to download from the mirror.  This repo contains an older version (2 months old, at the time of this edit), but also contains a script to create a new up-to-date index.
 
 catalog.bash checks the timestamp of the archive of rdf files (the catalog of all books) on gutenberg's mirror, compares it to the local index, and if need, downloads, extracts, and creates a new index file of the book numbers.  catalog.bash then removes the old index and cleans up after itself.
 
@@ -109,7 +109,7 @@ checking timestamp on stored catalog - done
 comparing timestamps - up to date
 ```
 
-in this case, catalog.bash sees it needs to get the new catalog, then proceeds to go through with its work.
+catalog.bash sees it needs to get the new catalog, then proceeds to go through with its work.
 
 ```
 $ bash catalog.bash 
@@ -126,7 +126,7 @@ removing the old cache - done
 all done
 ```
 
-the original intention of the catalog.bash script (as well as quote.pl) was to run automated.
+the original intention of the catalog.bash script (as well as quote.pl) was to run through cron.
 this can be done with a simple crontab entry.
 
 ```
@@ -137,7 +137,7 @@ $ crontab -l
 
 ## see it in action
 
-The final outcome, the purpose for creating this script, can be seen at [https://twitter.com/_daily_book] [daily_book].  Feel free to subscribe for some quality free ebook quotes, delivered right to your Twitter feed :)
+All parts working together can be seen at [https://twitter.com/_daily_book] [daily_book].  Feel free to follow for some quality free ebook quotes, delivered right to your Twitter feed :)
 
 ## unlicense
 
