@@ -142,7 +142,7 @@ MAIN: while (1) {
     }
 
     # open the book, cleanup, and store
-    open (my $raw_fh, "<:encoding(UTF-8)", "$file")
+    open (my $raw_fh, "<", "$file")
         or logger('fatal', "unable to open book txt: $!") and print "unable to open book txt: $!\n\n" and exit 1;
 
     # read, format, and store
