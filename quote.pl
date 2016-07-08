@@ -283,7 +283,7 @@ MAIN: while (1) {
         if (!$silent) {
             print "posting to twitter\n\n";
         }
-        eval { $twitter_object->update("$quote$page_link") };
+        eval { $twitter_object->update("$quote" . "\#ebook " . "$page_link") };
         if ( $@ ) {
             logger('warn', "post failed: $@");
             if (!$silent) {
