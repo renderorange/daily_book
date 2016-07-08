@@ -229,7 +229,7 @@ MAIN: while (1) {
         }
     }
 
-    # gutenberg formats their lines and paragraphs with just a block of whitespace
+    # gutenberg formats their paragraphs with a block of whitespace
     # so we need to correct that here.
     my ($build_variable, @paragraphs);
     foreach (@body) {
