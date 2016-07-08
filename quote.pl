@@ -251,9 +251,9 @@ MAIN: while (1) {
             next;
         } elsif ($_ !~ /^["]/) {  # only take lines that start with a quote, this has yielded the best results against bad results, at the expense of less available quotes.
             next;
-        } elsif ($_ !~ /["] $/) {  # if doesn't end with a quote, we dont want it either
+        } elsif ($_ !~ /["] $/) {  # if doesn't end with a quote
             next;
-        } elsif (length $_ > 90 && length $_ < 130) {  # make sure the length is good for twitter
+        } elsif (length $_ > 90 && length $_ < 119) {  # make sure the length is good for twitter
             $quote = $_;
         }
     }
