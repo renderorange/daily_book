@@ -117,7 +117,7 @@ MAIN: while (1) {
     }
     $file = "$number.txt";
 
-    my $page_link = "www.gutenberg.org/ebooks/$number";
+    my $page_link = "gutenberg.org/ebooks/$number";
 
     # build the book link
     my $book_link = "gutenberg.pglaf.org";  # downloading from the mirror
@@ -253,7 +253,7 @@ MAIN: while (1) {
             next;
         } elsif ($_ !~ /["] $/) {  # if doesn't end with a quote
             next;
-        } elsif (length $_ > 90 && length $_ < 119) {  # make sure the length is good for twitter
+        } elsif (length $_ > 90 && length $_ < 113) {  # make sure the length is good for twitter
             $quote = $_;
         }
     }
@@ -283,11 +283,13 @@ MAIN: while (1) {
         if (!$silent) {
             print "posting to twitter\n\n";
         }
-        eval { $twitter_object->update("$quote" . "\#ebook " . "$page_link") };
+        eval { $twitter_object->update("$quote$page_link") };
         if ( $@ ) {
             logger('warn', "post failed: $@");
+            logger('additional', "$file: $quote$page_link");
             if (!$silent) {
                 warn "post failed: $@\n\n";
+                
             }
         }
         last;
