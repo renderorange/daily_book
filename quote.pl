@@ -108,6 +108,7 @@ close ("$catalog_fh");
 ### begin processing
 # loop here, since a book isn't guaranteed to find a quote each time
 my ($number, $file);
+my $download_error_count = 0;
 MAIN: while (1) {
 
     if ($manual) {
@@ -136,7 +137,11 @@ MAIN: while (1) {
         logger('warn', "error: $rc while downloading - $file");
         print "error: $rc while downloading - $file\n\n";
         exit 1;
+    } elsif ($download_error_count == 20) {
+        logger('fatal', "error: download limit (20) exceeded");
+        exit 1;
     } elsif (is_error($rc)) {
+        $download_error_count++;
         logger('warn', "error: $rc while downloading - $file");
         next;
     }
