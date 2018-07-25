@@ -15,7 +15,7 @@ function warn {
 # compared the timestamps
 if [ -f catalog.txt ]; then  # first check if the catalog exists locally, otherwise just download it
     echo -n 'checking timestamp on server - '
-    NEW_TIMESTAMP=$(curl -s gutenberg.pglaf.org/cache/epub/feeds/ | grep rdf-files.tar.bz2 | egrep -oh '[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}')
+    NEW_TIMESTAMP=$(curl -s gutenberg.pglaf.org/gutenberg/cache/epub/feeds/ | grep rdf-files.tar.bz2 | egrep -oh '[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}')
     if [ $? == 1 ]; then error_and_exit; else echo 'done'; fi  # exit here if there was an issue connecting
 
     echo -n 'checking timestamp on stored catalog - '
@@ -35,7 +35,7 @@ fi
 
 # download the new archive
 echo -n 'downloading new archive - '
-WGET=$(wget --quiet 'gutenberg.pglaf.org/cache/epub/feeds/rdf-files.tar.bz2')
+WGET=$(wget --quiet 'gutenberg.pglaf.org/gutenberg/cache/epub/feeds/rdf-files.tar.bz2')
 if [ $? == 1 ]; then error_and_exit; else echo 'done'; fi
 
 # unpack
