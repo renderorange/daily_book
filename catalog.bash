@@ -27,7 +27,7 @@ if [ -f catalog.txt ]; then  # first check if the catalog exists locally, otherw
     OLD_EPOCH=$(date -d "$OLD_TIMESTAMP" +%s)  # although possiblity of closeness is still there
 
     if [ $NEW_EPOCH -lt $OLD_EPOCH ]; then
-        echo "up to date" && exit 0
+        echo "up to date" && exit 1
     else
         echo "done"
     fi
