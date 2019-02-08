@@ -66,5 +66,19 @@ echo -n 'removing the old cache - '
 RM_CACHE=$(rm -rf cache)
 if [ $? == 1 ]; then warn; else echo 'done'; fi
 
+# add the new catalog to the repo and push
+echo -n 'adding new catalog to git - '
+GIT_ADD=$(git add catalog.txt)
+if [ $? == 1 ]; then error_and_exit; else echo 'done'; fi
+
+echo -n 'committing - '
+GIT_COMMIT=$(git commit -m 'added new catalog')
+if [ $? == 1 ]; then error_and_exit; else echo 'done'; fi
+
+echo -n 'pushing to github - '
+GIT_PUSH=$(git push)
+if [ $? == 1 ]; then error_and_exit; else echo 'done'; fi
+
 # you made it!
 echo 'all done' && exit 0
+
