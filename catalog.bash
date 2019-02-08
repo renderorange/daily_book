@@ -75,7 +75,7 @@ echo -n 'committing - '
 GIT_COMMIT=$(git commit -m 'added new catalog')
 if [ $? == 1 ]; then error_and_exit; else echo 'done'; fi
 
-echo -n 'pushing to github - '
+echo 'pushing to github'
 GIT_PUSH=$(git push)
 if [ $? == 1 ]; then error_and_exit; else echo 'done'; fi
 
