@@ -12,6 +12,11 @@ function warn {
     echo 'error'
 }
 
+# force re-download of catalog
+echo -n 'removing old catalog - '
+CAT_RM=$(rm -f catalog.txt)
+if [ $? == 1 ]; then warn; else echo 'done'; fi
+
 # compared the timestamps
 if [ -f catalog.txt ]; then  # first check if the catalog exists locally, otherwise just download it
     echo -n 'checking timestamp on server - '
