@@ -83,7 +83,7 @@ GIT_COMMIT=$(git commit -m 'added new catalog')
 if [ $? == 1 ]; then error_and_exit; else echo 'done'; fi
 
 echo 'pushing to remote'
-GIT_PUSH=$(git push)
+GIT_PUSH=$(git push origin)
 if [ $? == 1 ]; then error_and_exit; else echo 'done'; fi
 
 # you made it!
