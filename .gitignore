@@ -2,3 +2,6 @@ quote.log
 .quote.*
 crontab
 scratch
+rdf-files.tar.bz2
+*.sw*
+export/
