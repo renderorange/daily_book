@@ -87,7 +87,7 @@ if (!$silent) {
 my $catalog = 'catalog.txt';
 if (! -e "$catalog") {
     print "$catalog doesn't exist\n" .
-          "please see github.com/renderorange/daily_book for setup details\n\n";
+          "please see https://github.com/renderorange/daily_book for setup details\n\n";
     exit 1;
 }
 
@@ -118,10 +118,10 @@ MAIN: while (1) {
     }
     $file = "$number.txt";
 
-    my $page_link = "gutenberg.org/ebooks/$number";
+    my $page_link = "https://gutenberg.org/ebooks/$number";
 
     # build the book link
-    my $book_link = "gutenberg.pglaf.org";  # downloading from the mirror
+    my $book_link = "https://gutenberg.pglaf.org";  # downloading from the mirror
     for (0..length($number)-2) {  # if book name >=2
         $book_link .= "/" . substr($number, $_, 1);
     }
@@ -132,7 +132,7 @@ MAIN: while (1) {
     }
 
     # download the ebook
-    my $rc = getstore("http://$book_link", "$file");
+    my $rc = getstore("$book_link", "$file");
     if ($manual && is_error($rc)) {
         logger('warn', "error: $rc while downloading - $file");
         print "error: $rc while downloading - $file\n\n";
