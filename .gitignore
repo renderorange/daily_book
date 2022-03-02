@@ -5,3 +5,4 @@ scratch
 rdf-files.tar.bz2
 *.sw*
 export/
+cache/
